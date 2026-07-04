@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artha — Meaningful wealth, honestly managed.</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & TOKENS ── */
+:root{
+  --forest:#0A1E13; --forest-mid:#1A3A2A; --forest-card:rgba(18,42,28,0.55);
+  --gold:#C9952E; --gold-mid:#D4A843; --gold-glow:rgba(201,149,46,0.15);
+  --glass:rgba(255,255,255,0.04); --glass-b:rgba(255,255,255,0.07);
+  --glass-h:rgba(255,255,255,0.08);
+  --t1:rgba(255,255,255,0.93); --t2:rgba(255,255,255,0.58);
+  --t3:rgba(255,255,255,0.32); --t4:rgba(255,255,255,0.14);
+  --ok:#2DD4A0; --err:#F07070;
+  --fd:'Cormorant Garamond',Georgia,serif;
+  --fb:'Inter',system-ui,sans-serif;
+  --fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fb);background:var(--forest);color:var(--t1);overflow-x:hidden;}
+
+/* ── CURSOR ── */
+
+/* ── CANVAS ── */
+#particle-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:0;pointer-events:none;opacity:0.9;
+}
+
+/* ── NOISE ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:1;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;opacity:0.5;
+}
+
+/* ── AMBIENT ORBS ── */
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;}
+.orb1{width:700px;height:700px;background:rgba(201,149,46,0.055);top:-200px;right:-150px;animation:ob 22s ease-in-out infinite;}
+.orb2{width:500px;height:500px;background:rgba(26,58,42,0.45);bottom:-100px;left:-80px;animation:ob 18s 7s ease-in-out infinite;}
+@keyframes ob{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-15px) scale(1.06);}}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 6%;height:66px;
+  background:rgba(10,30,19,0.6);backdrop-filter:blur(28px);
+  border-bottom:1px solid var(--glass-b);transition:background 0.4s;
+}
+nav.scrolled{background:rgba(10,30,19,0.92);}
+.logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;}
+.logo-sym{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(201,149,46,0.18),rgba(201,149,46,0.04));
+  border:1px solid rgba(201,149,46,0.28);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:0.95rem;color:var(--gold-mid);font-weight:600;
+}
+.logo-word{font-family:var(--fd);font-size:1.45rem;font-weight:600;color:var(--t1);letter-spacing:-0.5px;}
+.logo-word span{color:var(--gold);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:2rem;}
+.nav-links a{font-size:0.8rem;color:var(--t2);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover{color:var(--t1);}
+.nav-cta{
+  background:rgba(201,149,46,0.1);color:var(--gold-mid);
+  border:1px solid rgba(201,149,46,0.3);
+  padding:0.475rem 1.2rem;border-radius:100px;
+  font-size:0.8rem;font-weight:500;text-decoration:none;
+  transition:all 0.2s;backdrop-filter:blur(8px);
+}
+.nav-cta:hover{background:rgba(201,149,46,0.2);}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 1fr;
+  align-items:center;padding:66px 6% 0;
+}
+.hero-left{padding:4rem 3rem 4rem 2%;}
+.badge{
+  display:inline-flex;align-items:center;gap:0.45rem;
+  background:rgba(201,149,46,0.08);border:1px solid rgba(201,149,46,0.18);
+  color:rgba(201,149,46,0.8);font-size:0.6rem;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:0.32rem 0.8rem;border-radius:100px;margin-bottom:2rem;
+  opacity:0;animation:fadeUp 0.8s 0.1s ease forwards;
+}
+.badge::before{content:'◆';font-size:0.48rem;opacity:0.6;}
+
+/* ── CHAR SPLIT ── */
+.split-wrap{overflow:hidden;}
+.char{
+  display:inline-block;
+  opacity:0;transform:translateY(28px) rotate(2deg);
+  transition:opacity 0.5s ease,transform 0.6s cubic-bezier(0.16,1,0.3,1);
+  transition-delay:calc(var(--i,0) * 18ms);
+  will-change:transform,opacity;
+}
+.char.ws{display:inline;}
+.split-wrap.revealed .char{opacity:1;transform:translateY(0) rotate(0deg);}
+
+.hero h1{
+  font-family:var(--fd);font-size:3.8rem;font-weight:300;
+  line-height:1.1;letter-spacing:-1px;margin-bottom:0.5rem;
+  position:relative;
+}
+.hero h1 strong{font-weight:600;}
+.hero h1 em{color:var(--gold);font-style:italic;font-weight:300;}
+
+/* Gold underline draw */
+.underline-draw{position:relative;display:inline-block;}
+.underline-draw::after{
+  content:'';position:absolute;bottom:-3px;left:0;
+  height:1.5px;width:0;background:var(--gold);
+  transition:width 1s 0.9s cubic-bezier(0.16,1,0.3,1);
+  box-shadow:0 0 8px rgba(201,149,46,0.5);
+}
+.split-wrap.revealed .underline-draw::after{width:100%;}
+
+.hero-tagline{
+  font-family:var(--fd);font-size:1.05rem;font-weight:300;font-style:italic;
+  color:var(--t3);margin-bottom:1.75rem;letter-spacing:0.5px;
+  opacity:0;animation:fadeUp 0.8s 0.6s ease forwards;
+}
+.hero-sub{
+  font-size:0.9rem;color:var(--t2);line-height:1.85;
+  max-width:420px;font-weight:300;margin-bottom:2.5rem;
+  opacity:0;animation:fadeUp 0.8s 0.7s ease forwards;
+}
+.hero-sub strong{color:var(--t1);font-weight:500;}
+.hero-actions{
+  display:flex;gap:0.875rem;margin-bottom:3rem;
+  opacity:0;animation:fadeUp 0.8s 0.8s ease forwards;
+}
+.btn-p{
+  background:linear-gradient(135deg,var(--gold),#B8892A);
+  color:#0D1409;border:none;padding:0.85rem 2rem;border-radius:100px;
+  font-family:var(--fb);font-size:0.85rem;font-weight:600;
+  display:inline-flex;align-items:center;gap:0.45rem;
+  box-shadow:0 8px 32px rgba(201,149,46,0.22);
+  transition:transform 0.25s cubic-bezier(0.23,1,0.32,1),box-shadow 0.25s;
+}
+.btn-p:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(201,149,46,0.35);}
+.btn-g{
+  background:var(--glass);color:var(--t1);
+  border:1px solid var(--glass-b);padding:0.85rem 1.75rem;border-radius:100px;
+  font-family:var(--fb);font-size:0.85rem;font-weight:400;
+  backdrop-filter:blur(8px);transition:all 0.2s;
+}
+.btn-g:hover{background:var(--glass-h);}
+.hero-proof{
+  display:flex;align-items:center;gap:0.85rem;
+  opacity:0;animation:fadeUp 0.8s 0.9s ease forwards;
+}
+.avs{display:flex;}
+.av{
+  width:27px;height:27px;border-radius:50%;
+  border:1.5px solid rgba(10,30,19,0.9);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.58rem;font-weight:600;margin-left:-7px;
+}
+.av:first-child{margin-left:0;}
+.av1{background:rgba(45,212,160,0.22);color:var(--ok);}
+.av2{background:rgba(201,149,46,0.22);color:var(--gold);}
+.av3{background:rgba(147,112,219,0.22);color:#9370DB;}
+.av4{background:rgba(240,112,112,0.22);color:var(--err);}
+.proof-t{font-size:0.72rem;color:var(--t3);line-height:1.5;}
+.proof-t strong{color:var(--t2);}
+
+/* ── HERO RIGHT ── */
+.hero-right{
+  padding:4rem 2% 4rem 2rem;
+  opacity:0;animation:fadeUp 0.9s 0.4s ease forwards;
+}
+.card-stack{position:relative;width:100%;max-width:390px;}
+
+.gc{
+  background:var(--forest-card);
+  backdrop-filter:blur(28px) saturate(1.8);
+  border:1px solid var(--glass-b);border-radius:20px;
+  transition:transform 0.35s cubic-bezier(0.23,1,0.32,1),
+             box-shadow 0.35s,border-color 0.35s;
+}
+.gc:hover{
+  transform:translateY(-5px);
+  border-color:rgba(201,149,46,0.2);
+  box-shadow:0 28px 56px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.07);
+}
+
+.main-gc{padding:1.7rem;}
+.mc-lbl{font-size:0.58rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--t3);margin-bottom:0.45rem;font-family:var(--fm);}
+.mc-val{font-family:var(--fd);font-size:2.7rem;font-weight:600;color:var(--gold-mid);letter-spacing:-1px;line-height:1;margin-bottom:0.25rem;}
+.mc-chg{font-size:0.72rem;color:var(--t3);}
+.mc-chg strong{color:var(--ok);}
+.mc-div{height:1px;background:var(--glass-b);margin:1.2rem 0;}
+.mc-row{display:flex;justify-content:space-between;align-items:center;padding:0.58rem 0;border-bottom:1px solid rgba(255,255,255,0.035);}
+.mc-row:last-child{border-bottom:none;padding-bottom:0;}
+.mc-rl{font-size:0.75rem;color:var(--t2);}
+.mc-rv{font-family:var(--fm);font-size:0.72rem;color:var(--t1);}
+.mc-rv.up{color:var(--ok);} .mc-rv.dn{color:var(--err);} .mc-rv.gd{color:var(--gold-mid);}
+
+.nudge-gc{
+  margin-top:0.85rem;
+  background:linear-gradient(135deg,rgba(201,149,46,0.1),rgba(201,149,46,0.03));
+  border:1px solid rgba(201,149,46,0.18);border-radius:15px;padding:1.1rem 1.2rem;
+}
+.ng-top{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.55rem;}
+.ng-icon{
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(201,149,46,0.12);border:1px solid rgba(201,149,46,0.22);
+  display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;
+}
+.ng-title{font-size:0.68rem;font-weight:600;color:var(--gold);letter-spacing:0.5px;}
+.ng-body{font-size:0.75rem;color:var(--t2);line-height:1.6;}
+
+/* Floating chips */
+.fchip{
+  position:absolute;
+  background:rgba(15,35,22,0.85);
+  backdrop-filter:blur(20px);
+  border:1px solid var(--glass-b);border-radius:12px;
+  padding:0.7rem 1rem;box-shadow:0 16px 40px rgba(0,0,0,0.45);
+}
+.fchip1{top:-22px;right:-28px;animation:flt 4.5s ease-in-out infinite;}
+.fchip2{bottom:-14px;left:-28px;animation:flt 4.5s 2.2s ease-in-out infinite;}
+@keyframes flt{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.fc-lbl{font-size:0.52rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:0.22rem;font-family:var(--fm);}
+.fc-val{font-size:0.85rem;font-weight:500;color:var(--t1);}
+.fc-sub{font-size:0.62rem;color:var(--ok);margin-top:0.1rem;}
+
+/* ── STRIP ── */
+.strip{
+  position:relative;z-index:2;
+  background:rgba(255,255,255,0.025);
+  border-top:1px solid var(--glass-b);border-bottom:1px solid var(--glass-b);
+  padding:0.9rem 6%;
+  display:flex;gap:2.5rem;align-items:center;justify-content:center;flex-wrap:wrap;
+}
+.si{display:flex;align-items:center;gap:0.45rem;font-size:0.72rem;color:var(--t3);}
+.sd{width:3px;height:3px;border-radius:50%;background:var(--gold);opacity:0.7;flex-shrink:0;}
+
+/* ── SECTIONS ── */
+section{position:relative;z-index:2;padding:7rem 6%;}
+.ey{font-family:var(--fm);font-size:0.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;opacity:0.75;}
+.sh{font-family:var(--fd);font-size:2.7rem;font-weight:300;line-height:1.15;letter-spacing:-0.5px;color:var(--t1);margin-bottom:1rem;}
+.sh strong{font-weight:600;}
+.ss{font-size:0.9rem;color:var(--t2);line-height:1.85;max-width:520px;font-weight:300;margin-bottom:3.5rem;}
+
+/* ── PROBLEM ── */
+.prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+.prob-card{
+  background:var(--forest-card);backdrop-filter:blur(20px);
+  border:1px solid var(--glass-b);border-radius:20px;padding:2rem;
+  transition:all 0.35s cubic-bezier(0.23,1,0.32,1);position:relative;overflow:hidden;
+}
+.prob-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(201,149,46,0.05),transparent);
+  opacity:0;transition:opacity 0.35s;
+}
+.prob-card:hover{border-color:rgba(201,149,46,0.2);transform:translateY(-5px);}
+.prob-card:hover::before{opacity:1;}
+.pc-n{font-family:var(--fd);font-size:4rem;font-weight:300;color:rgba(201,149,46,0.07);position:absolute;top:0.8rem;right:1.25rem;line-height:1;}
+.pc-who{font-size:0.62rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:0.85rem;opacity:0.75;}
+.pc-pb{font-family:var(--fd);font-size:1.15rem;font-weight:400;color:var(--t1);line-height:1.4;margin-bottom:0.7rem;}
+.pc-d{font-size:0.8rem;color:var(--t3);line-height:1.7;}
+.pc-q{margin-top:1.2rem;padding:0.85rem 1rem;background:rgba(255,255,255,0.025);border-radius:9px;border-left:2px solid rgba(201,149,46,0.28);font-size:0.75rem;color:var(--t2);line-height:1.65;font-style:italic;}
+
+/* ── STEPS ── */
+.steps-bg{background:rgba(0,0,0,0.12);}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;}
+.step{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:20px;padding:1.7rem;transition:all 0.3s cubic-bezier(0.23,1,0.32,1);}
+.step:hover{border-color:rgba(201,149,46,0.2);transform:translateY(-4px);}
+.sn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,rgba(201,149,46,0.14),rgba(201,149,46,0.04));border:1px solid rgba(201,149,46,0.22);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1rem;font-weight:600;color:var(--gold);margin-bottom:1.2rem;}
+.st{font-family:var(--fd);font-size:1.05rem;font-weight:400;color:var(--t1);margin-bottom:0.45rem;}
+.sd2{font-size:0.78rem;color:var(--t3);line-height:1.7;}
+
+/* ── FEATURES ── */
+.feat-block{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;margin-bottom:7rem;}
+.feat-block:last-child{margin-bottom:0;}
+.feat-block.rev{direction:rtl;}
+.feat-block.rev>*{direction:ltr;}
+.ft{display:inline-flex;align-items:center;gap:0.35rem;background:rgba(201,149,46,0.07);color:var(--gold);border:1px solid rgba(201,149,46,0.16);font-size:0.62rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:0.28rem 0.7rem;border-radius:100px;margin-bottom:1.2rem;}
+.fh{font-family:var(--fd);font-size:2.2rem;font-weight:300;line-height:1.2;color:var(--t1);margin-bottom:0.85rem;letter-spacing:-0.5px;}
+.fh strong{font-weight:600;}
+.fp{font-size:0.85rem;color:var(--t2);line-height:1.85;margin-bottom:1.5rem;font-weight:300;}
+.fb-ul{list-style:none;display:flex;flex-direction:column;gap:0.6rem;}
+.fb-ul li{display:flex;align-items:flex-start;gap:0.6rem;font-size:0.8rem;color:var(--t2);}
+.fck{color:var(--ok);font-size:0.68rem;margin-top:0.18rem;flex-shrink:0;}
+
+/* Feature panels */
+.fpanel{background:var(--forest-card);backdrop-filter:blur(24px);border:1px solid var(--glass-b);border-radius:22px;overflow:hidden;}
+.fp-hd{background:rgba(0,0,0,0.22);padding:1.2rem 1.5rem;border-bottom:1px solid var(--glass-b);display:flex;justify-content:space-between;align-items:flex-start;}
+.fp-tk{font-family:var(--fm);font-size:0.82rem;font-weight:500;color:var(--gold-mid);}
+.fp-nm{font-size:0.62rem;color:var(--t3);margin-top:0.1rem;}
+.sig{padding:0.28rem 0.72rem;border-radius:100px;font-size:0.58rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid;}
+.sa{background:rgba(201,149,46,0.12);color:var(--gold);border-color:rgba(201,149,46,0.28);}
+.sg{background:rgba(45,212,160,0.1);color:var(--ok);border-color:rgba(45,212,160,0.22);}
+.sr{background:rgba(240,112,112,0.1);color:var(--err);border-color:rgba(240,112,112,0.22);}
+
+.fp-bd{padding:1.2rem 1.5rem;}
+.fm4{display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1rem;}
+.fm-cell{background:rgba(255,255,255,0.025);border:1px solid var(--glass-b);border-radius:8px;padding:0.62rem;text-align:center;}
+.fm-v{font-family:var(--fd);font-size:1.1rem;font-weight:600;color:var(--t1);}
+.fm-l{font-size:0.54rem;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-top:0.1rem;}
+.fm-vr{color:var(--err);} .fm-vg{color:var(--ok);}
+
+.analysis-box{background:rgba(201,149,46,0.045);border:1px solid rgba(201,149,46,0.1);border-left:2px solid rgba(201,149,46,0.38);border-radius:8px;padding:1rem;margin-bottom:1rem;}
+.ab-lbl{font-size:0.54rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;opacity:0.75;}
+.ab-txt{font-size:0.75rem;color:var(--t2);line-height:1.7;}
+
+/* Live promo bars */
+.promo-bars{display:flex;gap:4px;align-items:flex-end;height:58px;margin-bottom:1rem;}
+.pb-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.pb-bar{width:100%;border-radius:2px 2px 0 0;transform:scaleY(0);transform-origin:bottom;transition:transform 0.6s cubic-bezier(0.16,1,0.3,1);}
+.pb-bar.drawn{transform:scaleY(1);}
+.pb-v{font-size:0.5rem;font-family:var(--fm);color:var(--t3);}
+.pb-l{font-size:0.49rem;color:var(--t4);}
+
+/* Consensus */
+.con-row{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem;}
+.cr-lbl{font-size:0.58rem;color:var(--t3);width:58px;flex-shrink:0;font-family:var(--fm);}
+.cr-bar{flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden;display:flex;}
+.cr-b{background:var(--ok);} .cr-h{background:var(--gold);} .cr-s{background:var(--err);}
+.cr-ct{font-size:0.58rem;font-family:var(--fm);color:var(--t3);width:48px;text-align:right;}
+
+/* Rank panel */
+.rank-panel{background:var(--forest-card);backdrop-filter:blur(24px);border:1px solid var(--glass-b);border-radius:22px;padding:1.7rem;}
+.rp-lbl{font-size:0.58rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:0.22rem;}
+.rp-fund{font-family:var(--fd);font-size:1.2rem;font-weight:400;color:var(--t1);margin-bottom:0.1rem;}
+.rp-cat{font-size:0.7rem;color:var(--t3);margin-bottom:1.2rem;}
+.rbars{display:flex;flex-direction:column;gap:0.48rem;margin-bottom:1.2rem;}
+.rb-r{display:flex;align-items:center;gap:0.6rem;}
+.rb-y{font-size:0.58rem;font-family:var(--fm);color:var(--t3);width:24px;flex-shrink:0;}
+.rb-out{flex:1;height:5px;background:rgba(255,255,255,0.055);border-radius:100px;overflow:hidden;}
+.rb-in{height:100%;border-radius:100px;width:0;transition:width 0.8s cubic-bezier(0.16,1,0.3,1);}
+.rb-v{font-size:0.58rem;font-family:var(--fm);color:var(--t3);width:34px;text-align:right;}
+.vp{background:rgba(240,112,112,0.07);border:1px solid rgba(240,112,112,0.16);border-left:2px solid rgba(240,112,112,0.48);border-radius:8px;padding:0.85rem 1rem;}
+.vp-lbl{font-size:0.52rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--err);margin-bottom:0.22rem;opacity:0.8;}
+.vp-t{font-size:0.75rem;color:var(--t2);line-height:1.6;}
+
+/* Tax panel */
+.tax-panel{background:var(--forest-card);backdrop-filter:blur(24px);border:1px solid var(--glass-b);border-radius:22px;overflow:hidden;}
+.tax-top{background:linear-gradient(135deg,rgba(45,212,160,0.12),rgba(45,212,160,0.04));border-bottom:1px solid rgba(45,212,160,0.1);padding:1.5rem;display:flex;justify-content:space-between;align-items:flex-start;}
+.tt-lbl{font-size:0.52rem;letter-spacing:2px;text-transform:uppercase;color:rgba(45,212,160,0.55);margin-bottom:0.35rem;}
+.tt-val{font-family:var(--fd);font-size:0;font-weight:600;color:var(--ok);letter-spacing:-0.5px;line-height:1;transition:font-size 0.1s;}
+.tt-val.counted{font-size:2rem;}
+.tt-sub{font-size:0.7rem;color:var(--t3);margin-top:0.22rem;}
+.dl-b{background:rgba(240,112,112,0.1);border:1px solid rgba(240,112,112,0.18);border-radius:8px;padding:0.35rem 0.7rem;font-size:0.62rem;color:var(--err);text-align:center;}
+.tax-bdy{padding:1.2rem 1.5rem;}
+.tx-row{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.035);font-size:0.75rem;}
+.tx-row:last-child{border-bottom:none;}
+.tr-s{font-weight:500;color:var(--t1);}
+.tr-l{color:var(--err);font-family:var(--fm);font-size:0.68rem;}
+.tr-sv{color:var(--ok);font-family:var(--fm);font-size:0.68rem;background:rgba(45,212,160,0.07);border:1px solid rgba(45,212,160,0.14);padding:0.14rem 0.48rem;border-radius:4px;}
+.tx-total{display:flex;justify-content:space-between;align-items:center;padding-top:0.85rem;margin-top:0.22rem;border-top:1px solid var(--glass-b);}
+.tx-tl{font-size:0.85rem;font-weight:500;color:var(--t1);}
+.tx-tv{font-family:var(--fd);font-size:0;font-weight:600;color:var(--ok);transition:font-size 0.1s;}
+.tx-tv.counted{font-size:1.7rem;}
+
+/* ── PRICING ── */
+.pricing-bg{background:rgba(0,0,0,0.14);}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:3.5rem;max-width:1100px;margin-left:auto;margin-right:auto;}
+.pc{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:20px;padding:1.7rem;display:flex;flex-direction:column;transition:all 0.3s cubic-bezier(0.23,1,0.32,1);}
+.pc:hover{transform:translateY(-5px);border-color:rgba(255,255,255,0.12);}
+.pc.feat{background:linear-gradient(135deg,rgba(201,149,46,0.13),rgba(201,149,46,0.04));border-color:rgba(201,149,46,0.28);}
+.pc.feat:hover{border-color:rgba(201,149,46,0.48);}
+.pop-tag{background:rgba(201,149,46,0.18);color:var(--gold);border:1px solid rgba(201,149,46,0.28);font-size:0.58rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:0.22rem 0.7rem;border-radius:100px;margin-bottom:0.85rem;width:fit-content;}
+.pc-tr{font-size:0.58rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:0.85rem;}
+.pc-pr{font-family:var(--fd);font-size:2.2rem;font-weight:600;color:var(--t1);line-height:1;margin-bottom:0.22rem;}
+.pc.feat .pc-pr{color:var(--gold-mid);}
+.pc-pe{font-size:0.7rem;color:var(--t3);margin-bottom:1.2rem;}
+.pc-dc{font-size:0.78rem;color:var(--t2);line-height:1.65;margin-bottom:1.4rem;min-height:52px;}
+.pc-fl{list-style:none;display:flex;flex-direction:column;gap:0.48rem;margin-bottom:1.7rem;flex:1;}
+.pc-fl li{font-size:0.75rem;color:var(--t2);display:flex;align-items:flex-start;gap:0.48rem;line-height:1.45;}
+.pc-fl .ck{color:var(--ok);font-size:0.62rem;margin-top:0.14rem;flex-shrink:0;}
+.pc-btn{border-radius:100px;padding:0.6rem;font-family:var(--fb);font-size:0.8rem;font-weight:500;transition:all 0.2s;width:100%;background:var(--glass);color:var(--t1);border:1px solid var(--glass-b);}
+.pc-btn:hover{background:var(--glass-h);}
+.pc.feat .pc-btn{background:linear-gradient(135deg,var(--gold),#B8892A);color:#0D1409;border:none;font-weight:600;}
+.pc.feat .pc-btn:hover{box-shadow:0 8px 24px rgba(201,149,46,0.28);}
+
+/* ── TESTIMONIALS ── */
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-top:3.5rem;}
+.testi{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:20px;padding:1.7rem;transition:all 0.3s cubic-bezier(0.23,1,0.32,1);}
+.testi:hover{border-color:rgba(201,149,46,0.16);transform:translateY(-4px);}
+.ts{color:var(--gold);font-size:0.68rem;letter-spacing:2px;margin-bottom:1rem;opacity:0.75;}
+.tq{font-size:0.82rem;color:var(--t2);line-height:1.78;margin-bottom:1.2rem;font-style:italic;}
+.tn{font-size:0.72rem;font-weight:500;color:var(--t1);}
+.tr{font-size:0.68rem;color:var(--t3);margin-top:0.1rem;}
+
+/* ── FAQ ── */
+.faq-bg{background:rgba(0,0,0,0.1);}
+.faq-list{max-width:700px;margin-top:3.5rem;}
+.fi{border-bottom:1px solid var(--glass-b);padding:1.2rem 0;}
+.fi:last-child{border-bottom:none;}
+.fq{display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;font-weight:400;color:var(--t1);}
+.fi.open .fq{color:var(--gold);}
+.fa-arr{font-size:0.68rem;color:var(--t3);transition:transform 0.25s;flex-shrink:0;}
+.fi.open .fa-arr{transform:rotate(90deg);color:var(--gold);}
+.fa{font-size:0.8rem;color:var(--t2);line-height:1.78;margin-top:0.85rem;display:none;}
+.fi.open .fa{display:block;}
+
+/* ── CTA ── */
+.cta-sec{text-align:center;padding:8rem 6%;position:relative;overflow:hidden;}
+.cta-sec::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(201,149,46,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.cta-h{font-family:var(--fd);font-size:3.4rem;font-weight:300;color:var(--t1);letter-spacing:-0.5px;line-height:1.15;margin-bottom:0.75rem;position:relative;}
+.cta-h strong{font-weight:600;} .cta-h em{color:var(--gold);font-style:italic;}
+.cta-sub{font-size:0.9rem;color:var(--t3);margin-bottom:2.5rem;position:relative;}
+.cta-row{display:flex;gap:0.72rem;max-width:430px;margin:0 auto;position:relative;}
+.cta-in{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--glass-b);border-radius:100px;padding:0.85rem 1.4rem;font-family:var(--fb);font-size:0.85rem;color:var(--t1);outline:none;backdrop-filter:blur(8px);transition:border-color 0.2s;}
+.cta-in::placeholder{color:var(--t3);}
+.cta-in:focus{border-color:rgba(201,149,46,0.38);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#B8892A);color:#0D1409;border:none;border-radius:100px;padding:0.85rem 1.7rem;font-family:var(--fb);font-size:0.85rem;font-weight:600;box-shadow:0 8px 24px rgba(201,149,46,0.2);transition:all 0.2s;white-space:nowrap;}
+.btn-gold:hover{box-shadow:0 12px 32px rgba(201,149,46,0.35);transform:translateY(-1px);}
+.cta-note{font-size:0.68rem;color:var(--t3);margin-top:1rem;position:relative;}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--glass-b);padding:1.4rem 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;position:relative;z-index:2;background:rgba(0,0,0,0.18);}
+.f-logo{display:flex;align-items:center;gap:0.48rem;}
+.f-sym{width:24px;height:24px;border-radius:50%;border:1px solid rgba(201,149,46,0.18);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:0.78rem;color:var(--gold);font-weight:600;}
+.f-word{font-family:var(--fd);font-size:0.95rem;font-weight:600;color:var(--t2);}
+.f-links{display:flex;gap:1.6rem;}
+.f-links a{font-size:0.7rem;color:var(--t3);text-decoration:none;transition:color 0.15s;}
+.f-links a:hover{color:var(--t2);}
+.f-copy{font-size:0.62rem;color:var(--t4);}
+.disc{border-top:1px solid rgba(255,255,255,0.03);padding:1.2rem 6%;background:rgba(0,0,0,0.28);position:relative;z-index:2;}
+.disc p{font-size:0.62rem;color:var(--t4);line-height:1.7;max-width:880px;margin:0 auto;text-align:center;}
+.disc strong{color:var(--t3);}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity 0.7s ease,transform 0.7s cubic-bezier(0.16,1,0.3,1);}
+.reveal.vis{opacity:1;transform:translateY(0);}
+.reveal-d1{transition-delay:0.1s;} .reveal-d2{transition-delay:0.2s;} .reveal-d3{transition-delay:0.3s;}
+
+/* ── DEMO STRIP ── */
+.demo-sec{position:relative;z-index:2;padding:6rem 6%;background:rgba(0,0,0,.1);}
+.demo-strip{display:flex;align-items:flex-start;justify-content:center;gap:0;margin-top:3.5rem;position:relative;}
+.demo-step{display:flex;flex-direction:column;align-items:center;gap:.85rem;flex:1;position:relative;z-index:1;}
+.demo-step::after{content:'';position:absolute;top:44px;left:calc(50% + 38px);width:calc(100% - 76px);height:1px;background:linear-gradient(90deg,rgba(201,149,46,.35),rgba(201,149,46,.1));z-index:0;}
+.demo-step:last-child::after{display:none;}
+.demo-phone{width:72px;height:124px;border-radius:14px;background:var(--forest-card);border:1px solid var(--glass-b);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5);transition:transform .35s cubic-bezier(.23,1,.32,1),border-color .35s;position:relative;}
+.demo-phone:hover{transform:translateY(-8px);border-color:rgba(201,149,46,.3);}
+.demo-phone-bar{height:6px;width:100%;flex-shrink:0;}
+.demo-phone-body{flex:1;padding:6px 5px;display:flex;flex-direction:column;gap:3px;}
+.demo-phone-line{height:3px;border-radius:2px;background:rgba(255,255,255,.08);}
+.demo-phone-line.gold{background:rgba(201,149,46,.5);}
+.demo-phone-line.ok{background:rgba(45,212,160,.4);}
+.demo-phone-line.short{width:60%;}
+.demo-phone-line.shorter{width:40%;}
+.demo-phone-dot{width:18px;height:18px;border-radius:50%;margin:2px auto;flex-shrink:0;}
+.demo-step-num{width:22px;height:22px;border-radius:50%;background:rgba(201,149,46,.1);border:1px solid rgba(201,149,46,.28);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:.58rem;color:var(--gold-mid);flex-shrink:0;}
+.demo-step-label{font-size:.72rem;font-weight:500;color:var(--t2);text-align:center;line-height:1.4;}
+.demo-step-sub{font-size:.63rem;color:var(--t3);text-align:center;line-height:1.5;max-width:100px;}
+.demo-time-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,149,46,.08);border:1px solid rgba(201,149,46,.18);color:rgba(201,149,46,.8);font-size:.6rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:.3rem .8rem;border-radius:100px;margin-bottom:.85rem;}
+
+/* ── LIVE COUNTER ── */
+.live-counter-wrap{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px rgba(45,212,160,.6);animation:livepulse 2s ease-in-out infinite;}
+@keyframes livepulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:.5;}}
+.live-counter-text{font-family:var(--fm);font-size:.75rem;color:var(--t2);}
+.live-counter-text strong{color:var(--ok);}
+
+/* ── VIDEO MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--forest-card);border:1px solid var(--glass-b);border-radius:24px;width:min(640px,92vw);overflow:hidden;transform:translateY(24px) scale(.97);transition:transform .35s cubic-bezier(.23,1,.32,1);}
+.modal-overlay.open .modal-box{transform:translateY(0) scale(1);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;border-bottom:1px solid var(--glass-b);}
+.modal-title{font-family:var(--fd);font-size:1.05rem;font-weight:600;display:flex;align-items:center;gap:.5rem;}
+.modal-loom-dot{width:8px;height:8px;border-radius:50%;background:#00C7B7;box-shadow:0 0 6px rgba(0,199,183,.6);}
+.modal-close{width:28px;height:28px;border-radius:50%;background:var(--glass);border:1px solid var(--glass-b);color:var(--t2);font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.modal-close:hover{background:var(--glass-h);color:var(--t1);}
+.modal-screen{aspect-ratio:16/9;background:linear-gradient(135deg,var(--forest-mid),#0d2218);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;position:relative;overflow:hidden;}
+.modal-screen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,149,46,.06) 0%,transparent 70%);}
+.modal-play-ring{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(201,149,46,.4);display:flex;align-items:center;justify-content:center;position:relative;}
+.modal-play-ring::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(201,149,46,.15);}
+.modal-play-icon{width:0;height:0;border-style:solid;border-width:10px 0 10px 18px;border-color:transparent transparent transparent var(--gold-mid);margin-left:4px;}
+.modal-coming{font-family:var(--fd);font-size:1.1rem;color:var(--t2);font-style:italic;}
+.modal-coming-sub{font-size:.75rem;color:var(--t3);}
+.modal-footer{padding:.9rem 1.4rem;display:flex;align-items:center;justify-content:space-between;}
+.modal-progress{display:flex;align-items:center;gap:.5rem;font-family:var(--fm);font-size:.68rem;color:var(--t3);}
+.modal-prog-bar{width:80px;height:3px;background:var(--t4);border-radius:2px;overflow:hidden;}
+.modal-prog-fill{width:0%;height:100%;background:var(--gold);border-radius:2px;}
+.modal-eta{font-size:.68rem;color:var(--t3);}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── MAGNETIC BUTTON WRAP ── */
+.mag{display:inline-block;transition:transform 0.4s cubic-bezier(0.23,1,0.32,1);}
+
+/* ── MODE TOGGLE ── */
+.mode-btn{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;width:38px;height:38px;border-radius:50%;background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all 0.2s;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.mode-btn:hover{border-color:rgba(201,149,46,0.3);}
+
+/* ── MOBILE HERO CARD ── */
+.hero-mobile-card{
+  display:none;margin:2rem 0 0;
+  background:var(--forest-card);backdrop-filter:blur(28px);
+  border:1px solid var(--glass-b);border-radius:20px;padding:1.4rem;
+  position:relative;overflow:hidden;
+}
+.hero-mobile-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,149,46,.04),transparent);pointer-events:none;}
+.hmc-lbl{font-size:.55rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--t3);margin-bottom:.35rem;font-family:var(--fm);}
+.hmc-val{font-family:var(--fd);font-size:2.2rem;font-weight:600;color:var(--gold-mid);letter-spacing:-1px;line-height:1;margin-bottom:.2rem;}
+.hmc-chg{font-size:.7rem;color:var(--t3);margin-bottom:1rem;}
+.hmc-chg strong{color:var(--ok);}
+.hmc-rows{display:flex;flex-direction:column;gap:0;}
+.hmc-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.035);font-size:.75rem;}
+.hmc-row:last-child{border-bottom:none;}
+.hmc-rl{color:var(--t2);}
+.hmc-rv{font-family:var(--fm);font-size:.7rem;color:var(--t1);}
+.hmc-rv.up{color:var(--ok);}
+.hmc-nudge{margin-top:1rem;background:linear-gradient(135deg,rgba(201,149,46,.1),rgba(201,149,46,.03));border:1px solid rgba(201,149,46,.18);border-radius:12px;padding:.85rem 1rem;}
+.hmc-nudge-top{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;}
+.hmc-nudge-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+.hmc-nudge-title{font-size:.62rem;font-weight:600;color:var(--gold);letter-spacing:.5px;}
+.hmc-nudge-body{font-size:.73rem;color:var(--t2);line-height:1.6;}
+
+/* ── CSS PARTICLE FALLBACK (mobile / reduced-motion) ── */
+.css-particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.css-p{position:absolute;border-radius:50%;background:var(--gold);opacity:.4;animation:cssp linear infinite;}
+@keyframes cssp{0%{transform:translateY(0) scale(1);opacity:.4;}50%{opacity:.15;}100%{transform:translateY(-100vh) scale(.6);opacity:0;}}
+
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;}.hero-right{display:none;}
+  .hero-mobile-card{display:block;}
+  .hero-left{padding:3rem 0;}.hero h1{font-size:2.6rem;}
+  .prob-grid,.steps,.price-grid,.testi-grid{grid-template-columns:1fr;}
+  .feat-block{grid-template-columns:1fr;}.feat-block.rev{direction:ltr;}
+  section{padding:4rem 5%;}nav .nav-links a:not(.nav-cta){display:none;}
+  
+  .demo-strip{flex-direction:column;gap:1.5rem;}
+  .demo-step{flex-direction:row;align-items:center;gap:1rem;text-align:left;}
+  .demo-step::after{display:none;}
+  .demo-phone{width:52px;height:88px;flex-shrink:0;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+  .fchip1,.fchip2,.orb1,.orb2{animation:none;}
+  #particle-canvas{display:none;}
+  .css-particles{display:none;}
+}
+
+/* Canonical NEW pill for nav (Day 22 nav sweep) */
+.nav-pill-new{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:1.2px;color:#D4A843;background:rgba(201,149,46,0.1);border:1px solid rgba(201,149,46,0.3);padding:0.12rem 0.35rem;border-radius:100px;font-weight:500;margin-left:0.25rem;text-transform:uppercase;vertical-align:middle;}
+
+/* AI infrastructure credit line under hero-proof */
+.ai-credit{display:flex;align-items:center;gap:0.6rem;margin-top:1.2rem;padding:0.65rem 0.85rem;background:rgba(96,165,250,0.04);border:1px solid rgba(96,165,250,0.15);border-radius:100px;max-width:fit-content;}
+.aic-dot{width:6px;height:6px;border-radius:50%;background:#60A5FA;box-shadow:0 0 8px rgba(96,165,250,0.6);animation:aic-pulse 2.4s ease-in-out infinite;flex-shrink:0;}
+@keyframes aic-pulse{0%,100%{opacity:0.6;transform:scale(1);}50%{opacity:1;transform:scale(1.15);}}
+.aic-t{font-size:0.72rem;color:rgba(255,255,255,0.65);letter-spacing:0.2px;line-height:1.4;}
+.aic-t strong{color:rgba(255,255,255,0.9);font-weight:500;}
+@media(max-width:900px){.ai-credit{max-width:100%;}.aic-t{font-size:0.68rem;}}
+</style>
+</head>
+<body>
+
+<!-- CSS PARTICLE FALLBACK -->
+<div class="css-particles" id="css-particles"></div>
+
+<!-- VIDEO MODAL -->
+<div class="modal-overlay" id="video-modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title"><div class="modal-loom-dot"></div> Artha in 2 minutes</div>
+      <button class="modal-close" onclick="closeVideoModal()">&#215;</button>
+    </div>
+    <div class="modal-screen">
+      <div class="modal-play-ring"><div class="modal-play-icon"></div></div>
+      <div class="modal-coming">Demo coming soon.</div>
+      <div class="modal-coming-sub">We&#8217;re recording the product walkthrough. Join the waitlist to get it first.</div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-progress">
+        <span>Recording in progress</span>
+        <div class="modal-prog-bar"><div class="modal-prog-fill" style="width:68%"></div></div>
+      </div>
+      <div class="modal-eta">ETA: 2 weeks</div>
+    </div>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- CURSOR -->
+
+<!-- ORBS -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#top" class="logo">
+    <div class="logo-sym">&#8377;</div>
+    <div class="logo-word">Artha<span>.</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="artha-portfolio.html">Portfolio</a>
+    <a href="artha-tax-simulator.html">Tax tools</a>
+    <a href="artha-screener.html">Screener</a>
+    <a href="artha-analysis.html">AI Analysis <span class="nav-pill-new">NEW</span></a>
+    <a href="artha-learn.html">Learn</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#waitlist" class="nav-cta">Get early access &#8594;</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="badge">Private beta · Live now</div>
+
+    <h1>
+      <div class="split-wrap" data-split>
+        <span class="underline-draw">Meaningful wealth,</span>
+      </div>
+      <div class="split-wrap" data-split>
+        <em>honestly</em> <strong>managed.</strong>
+      </div>
+    </h1>
+
+    <div class="hero-tagline">India ka pehla financial advisor jo kuch bechta nahin.</div>
+    <p class="hero-sub">Artha gives every Indian investor <strong>honest, unconflicted financial intelligence.</strong> No commissions. No product sales. No hidden incentives. Just the truth your CA, wealth manager, and MF distributor won't tell you.</p>
+
+    <div class="hero-actions">
+      <div class="mag"><button class="btn-p magnetic" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Get early access ◆</button></div>
+      <div class="mag"><button class="btn-g magnetic" onclick="openVideoModal()">Watch 2-min demo</button></div>
+    </div>
+
+    <div class="hero-proof">
+      <div class="avs">
+        <div class="av av1">R</div><div class="av av2">P</div>
+        <div class="av av3">S</div><div class="av av4">A</div>
+      </div>
+      <div class="proof-t"><strong>Now in private beta</strong><br>Open to the first wave of investors</div>
+    </div>
+
+    <div class="ai-credit">
+      <div class="aic-dot"></div>
+      <div class="aic-t">Financial intelligence powered by <strong>Llama 3.3</strong> on <strong>Groq</strong> &middot; open-source AI, verifiable math, no black box</div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="card-stack">
+      <div class="fchip fchip1">
+        <div class="fc-lbl">XIRR post-tax</div>
+        <div class="fc-val">11.4%</div>
+        <div class="fc-sub">▲ vs 14.1% benchmark</div>
+      </div>
+      <div class="fchip fchip2">
+        <div class="fc-lbl">Tax leakage found</div>
+        <div class="fc-val">₹1,82,000</div>
+        <div class="fc-sub">Avoidable this FY</div>
+      </div>
+      <div class="gc main-gc">
+        <div class="mc-lbl">Total net worth · Live</div>
+        <div class="mc-val">₹1,24,38,200</div>
+        <div class="mc-chg">Today <strong>▲ ₹38,400 (+0.31%)</strong></div>
+        <div class="mc-div"></div>
+        <div class="mc-row"><div class="mc-rl">Direct equity</div><div class="mc-rv up">₹68.2L ▲ 13.2%</div></div>
+        <div class="mc-row"><div class="mc-rl">Mutual funds</div><div class="mc-rv up">₹34.6L ▲ 9.8%</div></div>
+        <div class="mc-row"><div class="mc-rl">FD · EPF · Debt</div><div class="mc-rv">₹21.6L · 7.1%</div></div>
+        <div class="mc-row"><div class="mc-rl">MF overlap (6 funds)</div><div class="mc-rv dn">68% — high</div></div>
+        <div class="nudge-gc">
+          <div class="ng-top">
+            <div class="ng-icon">⚡</div>
+            <div class="ng-title">Today's Artha insight</div>
+          </div>
+          <div class="ng-body">Your Parag Parikh Flexi Cap holds ₹95,000 Cr in AUM — above the ₹40,000 Cr capacity threshold for equity. Fund size health: 18.8/100. Manager tenure excellent (Rajeev Thakkar, 11.5 years) but size may constrain future alpha.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE HERO CARD -->
+  <div class="hero-mobile-card" style="opacity:0;animation:fadeUp 0.9s 0.5s ease forwards;">
+    <div class="hmc-lbl">Total net worth · Live</div>
+    <div class="hmc-val">&#8377;1,24,38,200</div>
+    <div class="hmc-chg">Today <strong>&#9650; &#8377;38,400 (+0.31%)</strong></div>
+    <div class="hmc-rows">
+      <div class="hmc-row"><div class="hmc-rl">Direct equity</div><div class="hmc-rv up">&#8377;68.2L &#9650; 13.2%</div></div>
+      <div class="hmc-row"><div class="hmc-rl">Mutual funds</div><div class="hmc-rv up">&#8377;34.6L &#9650; 9.8%</div></div>
+      <div class="hmc-row"><div class="hmc-rl">MF overlap (6 funds)</div><div class="hmc-rv" style="color:var(--err);">68% — high</div></div>
+    </div>
+    <div class="hmc-nudge">
+      <div class="hmc-nudge-top"><div class="hmc-nudge-dot"></div><div class="hmc-nudge-title">Today's Artha insight</div></div>
+      <div class="hmc-nudge-body">Parag Parikh Flexi Cap: AUM ₹95,000 Cr above capacity threshold. Fund size health 18.8/100. Excellent manager (11.5y tenure), but size may constrain alpha.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STRIP -->
+<div class="strip" style="position:relative;z-index:2;">
+  <div class="si"><div class="sd"></div>Zero commissions. Ever.</div>
+  <div class="si"><div class="sd"></div>No product sales or upsells</div>
+  <div class="si"><div class="sd"></div>Pure subscription · Your interests first</div>
+  <div class="si"><div class="sd"></div>Bank-grade data security</div>
+</div>
+
+<!-- PROBLEM -->
+<section class="reveal">
+  <div class="ey">The problem</div>
+  <h2 class="sh"><strong>Everyone giving you financial advice</strong><br>has a conflict of interest.</h2>
+  <p class="ss">Your wealth manager earns commission on what he sells. Your CA files returns but never touches your portfolio. Your MF distributor earns trail on every fund he keeps you in. Nobody is on your side.</p>
+  <div class="prob-grid">
+    <div class="prob-card reveal reveal-d1">
+      <div class="pc-n">01</div>
+      <div class="pc-who">The retail investor</div>
+      <div class="pc-pb">Getting stock tips from friends, Telegram, and YouTube</div>
+      <div class="pc-d">30M+ Indians entered the market post-2020. Most are making decisions based on unverified tips and WhatsApp forwards. No one shows them the actual data.</div>
+      <div class="pc-q">"My friend said Suzlon will double. I put ₹50,000. It's down 38%."</div>
+    </div>
+    <div class="prob-card reveal reveal-d2">
+      <div class="pc-n">02</div>
+      <div class="pc-who">The mutual fund investor</div>
+      <div class="pc-pb">Stuck in legacy funds living off past reputation</div>
+      <div class="pc-d">A fund ranked 3rd in 2020 now ranks 24th — but still in every distributor's recommended list because it pays the highest trail commission.</div>
+      <div class="pc-q">"I've been in the same fund 6 years. I didn't know it underperformed by 5% annually."</div>
+    </div>
+    <div class="prob-card reveal reveal-d3">
+      <div class="pc-n">03</div>
+      <div class="pc-who">The HNI investor</div>
+      <div class="pc-pb">Paying 1% AUM to a wealth manager who sells, not advises</div>
+      <div class="pc-d">HNIs pay ₹1-2L/year in fees and still get recommended high-commission NFOs while missing ₹2-4L in avoidable tax annually.</div>
+      <div class="pc-q">"My RM has never once told me to exit a position. Always adding, never subtracting."</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="steps-bg reveal">
+  <div class="ey">How it works</div>
+  <h2 class="sh"><strong>Honest intelligence</strong> in four steps.</h2>
+  <div class="steps">
+    <div class="step reveal reveal-d1"><div class="sn">1</div><div class="st">Upload your CAS</div><div class="sd2">One PDF from CAMS or KFin — your complete mutual fund picture. We parse it locally, never store the raw file. Takes 90 seconds.</div></div>
+    <div class="step reveal reveal-d2"><div class="sn">2</div><div class="st">We compute the truth</div><div class="sd2">MF overlap matrix (which funds hold the same stocks), 7-dimension fund quality scores, tax position (LTCG harvestable, IDCW flags), and red flags your distributor never mentions.</div></div>
+    <div class="step reveal reveal-d3"><div class="sn">3</div><div class="st">Run scenarios</div><div class="sd2">Tax harvest simulator, old vs new regime calculator, sell-now-vs-wait math. You input the action; we show the FY 2025-26 tax math step by step. No recommendations — math you can verify with your CA.</div></div>
+    <div class="step reveal" style="transition-delay:0.4s;"><div class="sn">4</div><div class="st">Make better decisions</div><div class="sd2">Every metric shows the raw number, the category context, and the confidence level. No hidden star ratings. No "trust us" — you see the math.</div></div>
+  </div>
+</section>
+
+
+<!-- DEMO STRIP — 47 seconds to value -->
+<section class="demo-sec reveal">
+  <div class="ey">See it in action</div>
+  <h2 class="sh">Your portfolio truth,<br><strong>in 47 seconds.</strong></h2>
+  <p class="ss">From zero to full portfolio intelligence — connect, scan, and act. No manual entry. No waiting.</p>
+  <div class="demo-time-badge">&#9670; Live product flow</div>
+  <div class="demo-strip">
+
+    <div class="demo-step reveal reveal-d1">
+      <div class="demo-phone">
+        <div class="demo-phone-bar" style="background:linear-gradient(90deg,var(--gold),#B8892A);"></div>
+        <div class="demo-phone-body">
+          <div class="demo-phone-line gold" style="width:55%;height:5px;border-radius:3px;margin-bottom:4px;"></div>
+          <div class="demo-phone-line" style="width:80%"></div>
+          <div class="demo-phone-line short"></div>
+          <div class="demo-phone-line" style="width:90%;margin-top:4px;background:rgba(201,149,46,.15);height:14px;border-radius:4px;"></div>
+        </div>
+      </div>
+      <div class="demo-step-num">1</div>
+      <div class="demo-step-label">Upload CAS</div>
+      <div class="demo-step-sub">CAMS or KFin PDF — one upload, full picture</div>
+    </div>
+
+    <div class="demo-step reveal reveal-d2">
+      <div class="demo-phone">
+        <div class="demo-phone-bar" style="background:linear-gradient(90deg,var(--info),#4f86c6);"></div>
+        <div class="demo-phone-body">
+          <div class="demo-phone-line" style="width:70%"></div>
+          <div class="demo-phone-line shorter" style="background:rgba(96,165,250,.3);"></div>
+          <div style="display:flex;gap:2px;margin-top:3px;">
+            <div style="flex:1;height:20px;border-radius:3px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.2);"></div>
+            <div style="flex:1;height:20px;border-radius:3px;background:rgba(201,149,46,.12);border:1px solid rgba(201,149,46,.2);"></div>
+          </div>
+          <div class="demo-phone-line" style="width:90%;margin-top:3px;"></div>
+        </div>
+      </div>
+      <div class="demo-step-num">2</div>
+      <div class="demo-step-label">Parser maps it</div>
+      <div class="demo-step-sub">Local parser. Your CAS never leaves the session.</div>
+    </div>
+
+    <div class="demo-step reveal" style="transition-delay:.3s;">
+      <div class="demo-phone">
+        <div class="demo-phone-bar" style="background:linear-gradient(90deg,var(--ok),#22b580);"></div>
+        <div class="demo-phone-body">
+          <div class="demo-phone-line ok" style="width:75%;height:4px;"></div>
+          <div class="demo-phone-line shorter"></div>
+          <div style="height:28px;border-radius:4px;background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.15);margin-top:3px;display:flex;align-items:center;justify-content:center;">
+            <div style="width:40px;height:3px;border-radius:2px;background:rgba(45,212,160,.4);"></div>
+          </div>
+          <div class="demo-phone-line" style="width:60%;margin-top:3px;"></div>
+        </div>
+      </div>
+      <div class="demo-step-num">3</div>
+      <div class="demo-step-label">Insights surface</div>
+      <div class="demo-step-sub">Overlap, tax leaks, fund quality</div>
+    </div>
+
+    <div class="demo-step reveal" style="transition-delay:.4s;">
+      <div class="demo-phone">
+        <div class="demo-phone-bar" style="background:linear-gradient(90deg,#C9952E,#f0b855);"></div>
+        <div class="demo-phone-body">
+          <div style="height:5px;border-radius:2px;background:rgba(201,149,46,.5);width:65%;"></div>
+          <div class="demo-phone-line shorter" style="margin-top:2px;"></div>
+          <div style="margin-top:4px;height:20px;border-radius:4px;background:rgba(201,149,46,.1);border-left:2px solid rgba(201,149,46,.5);padding-left:3px;display:flex;flex-direction:column;justify-content:center;gap:2px;">
+            <div style="height:2px;border-radius:1px;background:rgba(201,149,46,.3);width:70%;"></div>
+            <div style="height:2px;border-radius:1px;background:rgba(201,149,46,.2);width:50%;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-step-num">4</div>
+      <div class="demo-step-label">Run scenarios</div>
+      <div class="demo-step-sub">Tax harvest, sell-vs-wait, regime compare</div>
+    </div>
+
+    <div class="demo-step reveal" style="transition-delay:.5s;">
+      <div class="demo-phone">
+        <div class="demo-phone-bar" style="background:linear-gradient(90deg,#2DD4A0,#22b580);"></div>
+        <div class="demo-phone-body">
+          <div class="demo-phone-line ok" style="width:70%;"></div>
+          <div class="demo-phone-line shorter"></div>
+          <div style="margin-top:5px;height:26px;border-radius:6px;background:linear-gradient(135deg,rgba(45,212,160,.15),rgba(45,212,160,.05));border:1px solid rgba(45,212,160,.2);display:flex;align-items:center;justify-content:center;">
+            <div style="font-size:5px;color:var(--ok);font-family:monospace;letter-spacing:.5px;">TAKE ACTION</div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-step-num">5</div>
+      <div class="demo-step-label">You decide. Act.</div>
+      <div class="demo-step-sub">No recommendations. Just truth.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+
+  <!-- MF Overlap (NEW — most distinctive feature) -->
+  <div class="feat-block reveal">
+    <div>
+      <div class="ft">◆ MF Overlap Analysis</div>
+      <h3 class="fh">Six funds. Three stocks.<br><strong>You weren't diversified.</strong></h3>
+      <p class="fp">The single most useful thing we ship. Upload your CAS, we fetch each fund's holdings, and compute pairwise overlap. You see exactly which stocks repeat across funds, the effective diversification (Herfindahl-inverse), and which fund pairs are essentially the same product.</p>
+      <ul class="fb-ul">
+        <li><span class="fck">✓</span>Pairwise overlap % between every fund pair</li>
+        <li><span class="fck">✓</span>Stocks held in multiple funds, with total portfolio weight</li>
+        <li><span class="fck">✓</span>Effective stock count (HHI-inverse) vs nominal count</li>
+        <li><span class="fck">✓</span>"Holding both gives near-zero diversification" — flagged</li>
+        <li><span class="fck">✓</span>Debt/ETF/FoF schemes correctly excluded with reason shown</li>
+      </ul>
+      <div style="margin-top:1rem;"><a href="artha-portfolio.html" style="font-size:0.75rem;color:var(--gold-mid);text-decoration:none;border:1px solid rgba(201,149,46,0.3);padding:0.4rem 0.9rem;border-radius:100px;display:inline-block;">See the overlap matrix →</a></div>
+    </div>
+    <div class="fpanel" data-live="overlap">
+      <div class="fp-hd">
+        <div><div class="fp-tk">OVERLAP · 6 funds</div><div class="fp-nm">Pairwise stock-level overlap</div></div>
+        <div class="sig sa">⚠ 68% avg</div>
+      </div>
+      <div class="fp-bd">
+        <div class="fm4">
+          <div class="fm-cell"><div class="fm-v fm-vr">68%</div><div class="fm-l">Avg overlap</div></div>
+          <div class="fm-cell"><div class="fm-v fm-vr">14</div><div class="fm-l">Effective stocks</div></div>
+          <div class="fm-cell"><div class="fm-v" style="color:var(--gold);">42</div><div class="fm-l">Unique stocks</div></div>
+          <div class="fm-cell"><div class="fm-v fm-vg">3</div><div class="fm-l">Excluded (debt/ETF)</div></div>
+        </div>
+        <div class="analysis-box">
+          <div class="ab-lbl">Top overlap pair · Not investment advice</div>
+          <div class="ab-txt">HDFC Flexi Cap × ICICI Pru Bluechip share 18 stocks — 68% portfolio overlap. ICICI Bank appears in 5 of your 6 funds, totalling 6.82% of your portfolio.</div>
+        </div>
+        <div class="promo-bars" id="overlap-bars">
+          <div class="pb-col"><div class="pb-bar" style="height:78%;background:rgba(240,112,112,0.7);" data-h="78"></div><div class="pb-v">68%</div><div class="pb-l">HDFC×ICICI</div></div>
+          <div class="pb-col"><div class="pb-bar" style="height:62%;background:rgba(240,112,112,0.55);" data-h="62"></div><div class="pb-v">54%</div><div class="pb-l">HDFC×Axis</div></div>
+          <div class="pb-col"><div class="pb-bar" style="height:48%;background:rgba(212,168,67,0.7);" data-h="48"></div><div class="pb-v">42%</div><div class="pb-l">Axis×ICICI</div></div>
+          <div class="pb-col"><div class="pb-bar" style="height:32%;background:rgba(212,168,67,0.5);" data-h="32"></div><div class="pb-v">28%</div><div class="pb-l">Parag×HDFC</div></div>
+          <div class="pb-col"><div class="pb-bar" style="height:18%;background:rgba(45,212,160,0.6);" data-h="18"></div><div class="pb-v">15%</div><div class="pb-l">Parag×Axis</div></div>
+        </div>
+        <div class="con-row">
+          <div class="cr-lbl">Severity</div>
+          <div class="cr-bar"><div class="cr-b" style="flex:5;background:rgba(240,112,112,0.6);"></div><div class="cr-h" style="flex:3;background:rgba(212,168,67,0.6);"></div><div class="cr-s" style="flex:2;background:rgba(45,212,160,0.6);"></div></div>
+          <div class="cr-ct">5H·3M·2L</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tip Checker -->
+  <div class="feat-block reveal">
+    <div>
+      <div class="ft">◆ AI Analysis · Tip Checker</div>
+      <h3 class="fh">Four agents.<br><strong>One honest view.</strong></h3>
+      <p class="fp">Enter any NSE or BSE ticker. Four specialist AI agents — fundamentals, sentiment, technicals, and your portfolio fit — analyse it in parallel, then Claude synthesises a balanced research note. POSITIVE / NEUTRAL / CAUTIOUS framing. Never BUY / SELL. Math you can verify.</p>
+      <ul class="fb-ul">
+        <li><span class="fck">✓</span>Fundamentals agent — promoter holding, debt, ROE, revenue CAGR</li>
+        <li><span class="fck">✓</span>Sentiment agent — news, NSE filings, management tone</li>
+        <li><span class="fck">✓</span>Technical agent — RSI, MACD, EMA stack, 52-week range</li>
+        <li><span class="fck">✓</span>Portfolio fit agent — overlap with your CAS, correlation, sizing</li>
+        <li><span class="fck">✓</span>Claude synthesis — bull case, bear case, key risks, Artha's take</li>
+      </ul>
+      <div style="margin-top:1rem;"><a href="artha-analysis.html" style="font-size:0.75rem;color:var(--gold-mid);text-decoration:none;border:1px solid rgba(201,149,46,0.3);padding:0.4rem 0.9rem;border-radius:100px;display:inline-block;">Try AI Analysis →</a></div>
+    </div>
+    <div class="fpanel" data-live="tip">
+      <div class="fp-hd">
+        <div><div class="fp-tk">NSE: SUZLON</div><div class="fp-nm">Suzlon Energy Limited · ₹58.40</div></div>
+        <div class="sig sa">⚠ Caution</div>
+      </div>
+      <div class="fp-bd">
+        <div class="fm4">
+          <div class="fm-cell"><div class="fm-v fm-vr">42.1×</div><div class="fm-l">P/E</div></div>
+          <div class="fm-cell"><div class="fm-v fm-vr">14.2%</div><div class="fm-l">Promoter</div></div>
+          <div class="fm-cell"><div class="fm-v" style="color:var(--gold);">3.2×</div><div class="fm-l">D/E</div></div>
+          <div class="fm-cell"><div class="fm-v fm-vg">18.4%</div><div class="fm-l">Rev growth</div></div>
+        </div>
+        <div class="analysis-box">
+          <div class="ab-lbl">Artha view · Not investment advice</div>
+          <div class="ab-txt">Promoter at 14.2% declining for 6 consecutive quarters. Trades at 42× earnings vs sector average 28×. Very high retail momentum — historically a late-stage signal in this sector.</div>
+        </div>
+        <!-- Live animated promo bars -->
+        <div class="promo-bars" id="promo-bars">
+          <div class="pb-col"><div class="pb-bar" style="height:62%;background:rgba(45,212,160,0.65);" data-h="62"></div><div class="pb-v">18.1%</div><div class="pb-l">Q1'23</div></div>
+          <div class="pb-col"><div class="pb-bar" style="height:56%;background:rgba(212,168,67,0.65);" data-h="56"></div><div class="pb-v">16.8%</div><div class="pb-l">Q3'23</div></div>
+          <div class="pb-col"><div class="pb-bar" style="height:50%;background:rgba(212,168,67,0.5);" data-h="50"></div><div class="pb-v">15.6%</div><div class="pb-l">Q1'24</div></div>
+          <div class="pb-col"><div class="pb-bar" style="height:44%;background:rgba(240,112,112,0.65);" data-h="44"></div><div class="pb-v">14.6%</div><div class="pb-l">Q3'24</div></div>
+          <div class="pb-col"><div class="pb-bar" style="height:42%;background:rgba(240,112,112,0.8);" data-h="42"></div><div class="pb-v">14.2%</div><div class="pb-l">Q4'24</div></div>
+        </div>
+        <div class="con-row">
+          <div class="cr-lbl">Consensus</div>
+          <div class="cr-bar"><div class="cr-b" style="flex:2"></div><div class="cr-h" style="flex:5"></div><div class="cr-s" style="flex:3"></div></div>
+          <div class="cr-ct">2B·5H·3S</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fund Quality Scores -->
+  <div class="feat-block rev reveal">
+    <div>
+      <div class="ft">◆ Fund Quality Scoring</div>
+      <h3 class="fh">Seven dimensions.<br><strong>No hidden star ratings.</strong></h3>
+      <p class="fp">Every fund you hold gets scored across cost, risk-adjusted return, drawdown discipline, concentration fit, fund-size health, manager stability, and track record. Component scores, not a composite. You see the math.</p>
+      <ul class="fb-ul">
+        <li><span class="fck">✓</span>TER vs category median — cost score</li>
+        <li><span class="fck">✓</span>Sharpe-style return-to-volatility</li>
+        <li><span class="fck">✓</span>Max drawdown vs category-normal</li>
+        <li><span class="fck">✓</span>AUM in healthy band (too small AND too large penalised)</li>
+        <li><span class="fck">✓</span>Manager tenure curve — long-tenured gets bonus</li>
+        <li><span class="fck">✓</span>Red flags surface separately — never mask scores</li>
+      </ul>
+    </div>
+    <div class="rank-panel" data-live="rank">
+      <div class="rp-lbl">Fund quality scorecard</div>
+      <div class="rp-fund">Parag Parikh Flexi Cap · Direct Growth</div>
+      <div class="rp-cat">Equity · ₹95,000 Cr AUM · Manager Rajeev Thakkar (11.5y)</div>
+      <div class="rbars" id="rank-bars">
+        <div class="rb-r"><div class="rb-y">Cost</div><div class="rb-out"><div class="rb-in" style="background:var(--ok);opacity:0.85;" data-w="83"></div></div><div class="rb-v">83</div></div>
+        <div class="rb-r"><div class="rb-y">Risk-adj</div><div class="rb-out"><div class="rb-in" style="background:var(--ok);opacity:0.70;" data-w="75"></div></div><div class="rb-v">75</div></div>
+        <div class="rb-r"><div class="rb-y">Drawdown</div><div class="rb-out"><div class="rb-in" style="background:var(--ok);opacity:0.65;" data-w="71"></div></div><div class="rb-v">71</div></div>
+        <div class="rb-r"><div class="rb-y">Concentration</div><div class="rb-out"><div class="rb-in" style="background:var(--gold);opacity:0.65;" data-w="68"></div></div><div class="rb-v">68</div></div>
+        <div class="rb-r"><div class="rb-y">Fund size</div><div class="rb-out"><div class="rb-in" style="background:var(--err);opacity:0.80;" data-w="19"></div></div><div class="rb-v">19</div></div>
+        <div class="rb-r"><div class="rb-y">Manager</div><div class="rb-out"><div class="rb-in" style="background:var(--ok);opacity:0.95;" data-w="100"></div></div><div class="rb-v">100</div></div>
+      </div>
+      <div class="vp">
+        <div class="vp-lbl">Excellent manager stability, but weak fund size health</div>
+        <div class="vp-t">AUM ₹95,000 Cr is above the ₹40,000 Cr capacity threshold for equity — historically associated with diluted alpha generation. Verdict shows the trade-off; you decide.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tax -->
+  <div class="feat-block reveal">
+    <div>
+      <div class="ft">◆ Tax Intelligence</div>
+      <h3 class="fh">FY 2025-26 tax math,<br><strong>step by step.</strong></h3>
+      <p class="fp">We show your portfolio's tax position from the CAS snapshot, surface harvesting opportunities, flag IDCW schemes that leak to slab rate, and give you an interactive simulator to run sell scenarios. You input the action; we show the math. No "trust us" — verify with your CA.</p>
+      <ul class="fb-ul">
+        <li><span class="fck">✓</span>Approximate equity gain since CAS snapshot</li>
+        <li><span class="fck">✓</span>LTCG harvest opportunity (₹1.25L exemption tracker)</li>
+        <li><span class="fck">✓</span>IDCW detection — slab-rate distribution leaks flagged</li>
+        <li><span class="fck">✓</span>Hybrid funds flagged for manual tax-treatment review</li>
+        <li><span class="fck">✓</span>Interactive simulator: harvest, sell scenario, old vs new regime</li>
+      </ul>
+      <div style="margin-top:1rem;"><a href="artha-tax-simulator.html" style="font-size:0.75rem;color:var(--gold-mid);text-decoration:none;border:1px solid rgba(201,149,46,0.3);padding:0.4rem 0.9rem;border-radius:100px;display:inline-block;">Try the tax simulator →</a></div>
+    </div>
+    <div class="tax-panel" data-live="tax">
+      <div class="tax-top">
+        <div>
+          <div class="tt-lbl">LTCG harvest opportunity · FY 2025-26</div>
+          <div class="tt-val" id="tax-hero-val">₹0</div>
+          <div class="tt-sub">Approximate equity gain since CAS · sample portfolio</div>
+        </div>
+        <div class="dl-b">12.5%<br><span style="font-size:0.52rem;opacity:0.7;">LTCG rate</span></div>
+      </div>
+      <div class="tax-bdy">
+        <div class="tx-row"><div class="tr-s">Total equity gain since CAS</div><div class="tr-l">₹3,97,842</div><div class="tr-sv">approximate</div></div>
+        <div class="tx-row"><div class="tr-s">LTCG exemption available</div><div class="tr-l">₹1,25,000</div><div class="tr-sv">FY 2025-26</div></div>
+        <div class="tx-total">
+          <div class="tx-tl">Estimated tax saving if harvested</div>
+          <div class="tx-tv" id="tax-total-val">₹0</div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--t3);margin-top:0.72rem;line-height:1.6;">Numbers shown are from our sample portfolio demo. Your actual harvestable amount depends on per-position holding period and prior FY realisations — verify with your CA before any action.</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- PRICING -->
+<section class="pricing-bg reveal" id="pricing">
+  <div class="ey">Pricing</div>
+  <h2 class="sh">Simple. <strong>No conflicts.</strong> No hidden fees.</h2>
+  <p class="ss">One subscription. No commissions, no trail income, no product sales — ever. Our only revenue is your fee. That's the alignment.</p>
+  <div class="price-grid">
+    <div class="pc reveal reveal-d1">
+      <div class="pc-tr">Free</div>
+      <div class="pc-pr">₹0</div>
+      <div class="pc-pe">forever free</div>
+      <div class="pc-dc">Everything you need to see the truth about your portfolio. For every Indian investor.</div>
+      <ul class="pc-fl">
+        <li><span class="ck">✓</span>CAS upload — CAMS + KFin</li>
+        <li><span class="ck">✓</span>MF overlap analysis (matrix + pairs)</li>
+        <li><span class="ck">✓</span>7-dimension fund quality scores</li>
+        <li><span class="ck">✓</span>Tax intelligence dashboard</li>
+        <li><span class="ck">✓</span>Tax scenario simulator (3 tools)</li>
+        <li><span class="ck">✓</span>Stock screener with DNA framework</li>
+      </ul>
+      <button class="pc-btn magnetic" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Start free</button>
+    </div>
+    <div class="pc feat reveal reveal-d2">
+      <div class="pop-tag">Most popular</div>
+      <div class="pc-tr">Premium</div>
+      <div class="pc-pr">₹299<span style="font-size:1rem;font-weight:300;">/mo</span></div>
+      <div class="pc-pe">₹2,499/year · save 30%</div>
+      <div class="pc-dc">Daily intelligence, AI co-pilot, and the alerts your distributor never sends.</div>
+      <ul class="pc-fl">
+        <li><span class="ck">✓</span>Everything in Free</li>
+        <li><span class="ck">✓</span>Daily AI nudge feed</li>
+        <li><span class="ck">✓</span>AI co-pilot chat — ask anything about your holdings</li>
+        <li><span class="ck">✓</span>Real-time LTCG / STCG tracker</li>
+        <li><span class="ck">✓</span>Fund quality alerts (Tier-2 changes flagged)</li>
+        <li><span class="ck">✓</span>Monthly portfolio truth report</li>
+      </ul>
+      <button class="pc-btn magnetic" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Start Premium</button>
+    </div>
+    <div class="pc reveal reveal-d3">
+      <div class="pc-tr">Family</div>
+      <div class="pc-pr">₹699<span style="font-size:1rem;font-weight:300;">/mo</span></div>
+      <div class="pc-pe">₹5,999/year · save 28%</div>
+      <div class="pc-dc">For families managing wealth across multiple members. Up to 4 portfolios, one subscription.</div>
+      <ul class="pc-fl">
+        <li><span class="ck">✓</span>Everything in Premium</li>
+        <li><span class="ck">✓</span>Up to 4 family portfolios</li>
+        <li><span class="ck">✓</span>Consolidated household view</li>
+        <li><span class="ck">✓</span>Cross-portfolio tax optimisation</li>
+        <li><span class="ck">✓</span>CA-ready capital gains export per member</li>
+        <li><span class="ck">✓</span>Goal tracking across the family</li>
+      </ul>
+      <button class="pc-btn magnetic" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Start Family</button>
+    </div>
+  </div>
+  <p style="font-size:0.72rem;color:var(--t3);text-align:center;margin-top:1.5rem;line-height:1.6;">14-day free trial on Premium and Family · Cancel anytime · No credit card to start</p>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="reveal">
+  <div class="ey">Beta access</div>
+  <h2 class="sh">We're starting <strong>small.</strong></h2>
+  <p class="ss" style="max-width:680px;">No fake testimonials. We'd rather earn them. The first 30 users get free Premium for a year, direct access to the team, and their feedback shapes what we build next.</p>
+
+  <div class="testi-grid">
+    <div class="testi reveal reveal-d1">
+      <div class="ts" style="color:var(--gold-mid);font-family:var(--fm);font-size:0.6rem;letter-spacing:1.8px;text-transform:uppercase;">Wave 1 · Investors</div>
+      <div class="tq">"30 spots. Free Premium for a year. Direct line to the team. We'd rather have 30 honest beta users than 3,000 hype signups."</div>
+      <div class="tn">— First wave criteria</div>
+      <div class="tr">Active SIP investor · Has at least one CAS · Willing to give 15 min of feedback per month</div>
+    </div>
+    <div class="testi reveal reveal-d2">
+      <div class="ts" style="color:var(--gold-mid);font-family:var(--fm);font-size:0.6rem;letter-spacing:1.8px;text-transform:uppercase;">Wave 2 · Early adopters</div>
+      <div class="tq">"First 200. 50% off Premium for the first year. Helps us figure out what 'works at scale' actually means for an honest finance product."</div>
+      <div class="tn">— Second wave</div>
+      <div class="tr">Opens once Wave 1 has tested for 4 weeks · Cap at 200</div>
+    </div>
+    <div class="testi reveal reveal-d3">
+      <div class="ts" style="color:var(--gold-mid);font-family:var(--fm);font-size:0.6rem;letter-spacing:1.8px;text-transform:uppercase;">Public · Open beta</div>
+      <div class="tq">"Standard pricing. Standard onboarding. Public launch with whatever we've learned from Waves 1 and 2."</div>
+      <div class="tn">— Public</div>
+      <div class="tr">When Wave 2 feedback says we're ready, not before</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-bg reveal" id="faq">
+  <div class="ey">Questions</div>
+  <h2 class="sh"><strong>Honest</strong> answers.</h2>
+  <div class="faq-list">
+    <div class="fi open"><div class="fq" onclick="toggleFaq(this.parentNode)">Is Artha SEBI registered? <span class="fa-arr">›</span></div><div class="fa">Artha is a financial analytics and intelligence platform. We provide data, analysis, and information — we do not give personalised buy or sell recommendations. We are on the path to SEBI Research Analyst registration.</div></div>
+    <div class="fi"><div class="fq" onclick="toggleFaq(this.parentNode)">How does Artha make money if it doesn't sell products? <span class="fa-arr">›</span></div><div class="fa">Pure subscription revenue — ₹299/mo Premium, ₹699/mo Family. We earn zero commission from any mutual fund, broker, or financial product. Our only revenue is your fee. That's the alignment.</div></div>
+    <div class="fi"><div class="fq" onclick="toggleFaq(this.parentNode)">How is this different from INDmoney or Kuvera? <span class="fa-arr">›</span></div><div class="fa">INDmoney and Kuvera may earn revenue through mutual fund distribution, trail commissions, or product referrals — a legitimate model. Artha's only revenue is your subscription fee. We distribute no financial product and earn trail on no fund. We also show you our math: every score has the raw value, the category context, and the confidence level — no hidden star ratings.</div></div>
+    <div class="fi"><div class="fq" onclick="toggleFaq(this.parentNode)">What can I actually do with the free tier? <span class="fa-arr">›</span></div><div class="fa">Everything that matters for portfolio honesty: upload your CAS, see MF overlap analysis (the matrix + pairwise overlap %), get 7-dimension fund quality scores, view tax intelligence (LTCG harvest opportunities, IDCW flags, regime hint), and run scenarios in the tax simulator. The free tier is the real product — Premium adds daily AI nudges and the co-pilot chat.</div></div>
+    <div class="fi"><div class="fq" onclick="toggleFaq(this.parentNode)">Does Artha give buy/sell recommendations? <span class="fa-arr">›</span></div><div class="fa">No. We compute math from your data — overlap percentages, fund quality scores, tax scenarios — and surface patterns. We never tell you to buy or sell anything. The decision is yours, and for tax matters we strongly recommend you verify with a qualified CA before acting on any scenario the simulator shows.</div></div>
+    <div class="fi"><div class="fq" onclick="toggleFaq(this.parentNode)">How accurate is the tax math? <span class="fa-arr">›</span></div><div class="fa">All slab rates and exemptions are FY 2025-26 (Budget 2025) — LTCG 12.5%, STCG 20%, ₹1.25L exemption, new regime ₹4L basic + ₹60K rebate. But: a CAS gives us closing snapshots, not transaction history. So we can't know your actual purchase dates or YTD realised gains. We compute approximations and tell you what they're approximating. Always verify with your CA before acting.</div></div>
+    <div class="fi"><div class="fq" onclick="toggleFaq(this.parentNode)">Is my financial data safe? <span class="fa-arr">›</span></div><div class="fa">CAS PDFs are parsed in your session and never stored. Account-level data, when you create an account in Premium, is encrypted at rest and in transit. We do not sell or share your data with any third party. Ever.</div></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec reveal" id="waitlist">
+  <h2 class="cta-h">Stop getting advice from people<br>who <em>profit</em> from your <strong>decisions.</strong></h2>
+  <div class="live-counter-wrap" style="justify-content:center;">
+    <div class="live-dot"></div>
+    <div class="live-counter-text">Private beta · <strong>Wave 1 spots filling</strong></div>
+  </div>
+  <p class="cta-sub">Drop your email. We'll let you in personally — first wave of 30 gets free Premium for a year.</p>
+  <div class="cta-row">
+    <input class="cta-in" type="email" placeholder="your@email.com" id="email-in"/>
+    <button class="btn-gold magnetic" onclick="handleSignup()">Request early access</button>
+  </div>
+  <div class="cta-note">Free to join · No credit card · Cancel anytime</div>
+</section>
+
+<footer>
+  <div class="f-logo"><div class="f-sym">₹</div><div class="f-word">Artha.</div></div>
+  <div class="f-links"><a href="artha-portfolio.html">Portfolio</a><a href="artha-tax-simulator.html">Tax tools</a><a href="artha-screener.html">Screener</a><a href="artha-learn.html">Learn</a><a href="privacy.html">Privacy</a></div>
+  <div class="f-copy">© 2026 Artha · Meaningful wealth, honestly managed.</div>
+</footer>
+<div class="disc"><p><strong>Disclaimer:</strong> All content on this platform is for informational and educational purposes only and does not constitute investment advice or a recommendation to buy or sell any security. Artha's analyses represent our independent data-driven viewpoint. Artha is not a SEBI-registered Investment Adviser or Research Analyst. All investments are subject to market risk. Please consult a SEBI-registered professional before investing.</p></div>
+
+<div class="mode-btn" onclick="toggleMode()">☀️</div>
+
+<!-- THREE.JS -->
+<script>
+// ═══════════════════════════════════════════
+// 0. PERFORMANCE: Conditional Three.js + CSS fallback
+// ═══════════════════════════════════════════
+var IS_MOBILE = window.innerWidth <= 900;
+var PREFERS_REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+if(!IS_MOBILE && !PREFERS_REDUCED){
+  // Load Three.js only on desktop
+  var s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  s.onload=initParticles;
+  document.head.appendChild(s);
+} else {
+  // CSS particle fallback for mobile
+  initCSSParticles();
+  document.getElementById('particle-canvas').style.display='none';
+}
+
+function initCSSParticles(){
+  var wrap=document.getElementById('css-particles');
+  for(var i=0;i<22;i++){
+    var p=document.createElement('div');
+    p.className='css-p';
+    var sz=Math.random()*3+1.5;
+    p.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+Math.random()*100+'%;bottom:-10px;animation-duration:'+(Math.random()*18+10)+'s;animation-delay:'+(-Math.random()*15)+'s;opacity:'+(Math.random()*0.3+0.08)+';';
+    wrap.appendChild(p);
+  }
+}
+
+// ═══════════════════════════════════════════
+// 1. THREE.JS PARTICLE SYSTEM (desktop only)
+// ═══════════════════════════════════════════
+function initParticles(){(function(){
+  var canvas = document.getElementById('particle-canvas');
+  var W = window.innerWidth, H = window.innerHeight;
+  var renderer = new THREE.WebGLRenderer({canvas:canvas,alpha:true,antialias:true});
+  renderer.setSize(W,H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(70, W/H, 0.1, 100);
+  camera.position.z = 9;
+
+  // — Main particle cloud (bumped) —
+  var COUNT = 260;
+  var pos = new Float32Array(COUNT * 3);
+  var vel = new Float32Array(COUNT * 3);
+  for(var i=0;i<COUNT;i++){
+    pos[i*3]   = (Math.random()-0.5)*26;
+    pos[i*3+1] = (Math.random()-0.5)*20;
+    pos[i*3+2] = (Math.random()-0.5)*10;
+    vel[i*3]   = (Math.random()-0.5)*0.003;
+    vel[i*3+1] = (Math.random()-0.5)*0.003;
+    vel[i*3+2] = 0;
+  }
+  var geo = new THREE.BufferGeometry();
+  var posAttr = new THREE.BufferAttribute(pos,3);
+  geo.setAttribute('position',posAttr);
+  var mat = new THREE.PointsMaterial({color:0xC9952E,size:0.06,transparent:true,opacity:0.62,sizeAttenuation:true});
+  var points = new THREE.Points(geo,mat);
+  scene.add(points);
+
+  // — Secondary cloud (bumped) —
+  var COUNT2 = 140;
+  var pos2 = new Float32Array(COUNT2*3);
+  for(var j=0;j<COUNT2;j++){
+    pos2[j*3]   = (Math.random()-0.5)*30;
+    pos2[j*3+1] = (Math.random()-0.5)*22;
+    pos2[j*3+2] = (Math.random()-0.5)*6;
+  }
+  var geo2 = new THREE.BufferGeometry();
+  geo2.setAttribute('position',new THREE.BufferAttribute(pos2,3));
+  var mat2 = new THREE.PointsMaterial({color:0xD4A843,size:0.03,transparent:true,opacity:0.34,sizeAttenuation:true});
+  var points2 = new THREE.Points(geo2,mat2);
+  scene.add(points2);
+
+  // — Third dust layer for extra depth —
+  var COUNT3 = 90;
+  var pos3 = new Float32Array(COUNT3*3);
+  for(var k3=0;k3<COUNT3;k3++){
+    pos3[k3*3]   = (Math.random()-0.5)*34;
+    pos3[k3*3+1] = (Math.random()-0.5)*24;
+    pos3[k3*3+2] = (Math.random()-0.5)*4;
+  }
+  var geo3 = new THREE.BufferGeometry();
+  geo3.setAttribute('position',new THREE.BufferAttribute(pos3,3));
+  var mat3 = new THREE.PointsMaterial({color:0xE5B968,size:0.018,transparent:true,opacity:0.22,sizeAttenuation:true});
+  var points3 = new THREE.Points(geo3,mat3);
+  scene.add(points3);
+
+  // — Mouse tracking —
+  var mx=0,my=0,tx=0,ty=0;
+  document.addEventListener('mousemove',function(e){
+    tx = (e.clientX/W-0.5)*1.8;
+    ty = -(e.clientY/H-0.5)*1.2;
+  });
+
+  var time=0;
+  function animate(){
+    requestAnimationFrame(animate);
+    time += 0.004;
+
+    // Smooth mouse follow
+    mx += (tx-mx)*0.03;
+    my += (ty-my)*0.03;
+
+    // Camera follows mouse — creates parallax depth
+    camera.position.x += (mx*0.6 - camera.position.x)*0.025;
+    camera.position.y += (my*0.4 - camera.position.y)*0.025;
+    camera.lookAt(scene.position);
+
+    // Slow cloud rotation
+    points.rotation.y  = time*0.04;
+    points.rotation.x  = Math.sin(time*0.025)*0.06;
+    points2.rotation.y = -time*0.025;
+    points2.rotation.z = time*0.015;
+    points3.rotation.y = time*0.018;
+    points3.rotation.x = -Math.sin(time*0.02)*0.04;
+
+    // Particle drift
+    for(var k=0;k<COUNT;k++){
+      pos[k*3]   += vel[k*3];
+      pos[k*3+1] += vel[k*3+1];
+      // Wrap
+      if(pos[k*3] >  13) pos[k*3] = -13;
+      if(pos[k*3] < -13) pos[k*3] =  13;
+      if(pos[k*3+1] >  10) pos[k*3+1] = -10;
+      if(pos[k*3+1] < -10) pos[k*3+1] =  10;
+    }
+    posAttr.needsUpdate = true;
+
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  // Resize
+  window.addEventListener('resize',function(){
+    W=window.innerWidth;H=window.innerHeight;
+    camera.aspect=W/H;camera.updateProjectionMatrix();
+    renderer.setSize(W,H);
+  });
+})();
+} // end initParticles
+
+// ═══════════════════════════════════════════
+
+// ═══════════════════════════════════════════
+// 3. CHARACTER SPLIT TEXT REVEALS
+// ═══════════════════════════════════════════
+(function(){
+  // Split each [data-split] element into individual character spans
+  document.querySelectorAll('[data-split]').forEach(function(el){
+    // Preserve existing child nodes (em, strong)
+    var nodes = Array.from(el.childNodes);
+    el.innerHTML='';
+    var charIdx=0;
+    nodes.forEach(function(node){
+      if(node.nodeType===3){ // text node
+        node.textContent.split('').forEach(function(ch){
+          var s=document.createElement('span');
+          s.classList.add('char');
+          if(ch===' '){s.innerHTML='&nbsp;';s.classList.add('ws');}
+          else s.textContent=ch;
+          s.style.setProperty('--i',charIdx);
+          el.appendChild(s);
+          charIdx++;
+        });
+      } else { // element node (em, strong)
+        // Wrap its text content in chars too
+        var inner=node.textContent;
+        var wrapper=document.createElement(node.tagName.toLowerCase());
+        inner.split('').forEach(function(ch){
+          var s=document.createElement('span');
+          s.classList.add('char');
+          if(ch===' '){s.innerHTML='&nbsp;';s.classList.add('ws');}
+          else s.textContent=ch;
+          s.style.setProperty('--i',charIdx);
+          wrapper.appendChild(s);
+          charIdx++;
+        });
+        el.appendChild(wrapper);
+      }
+    });
+  });
+
+  // Observe and trigger reveal
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting) e.target.classList.add('revealed');
+    });
+  },{threshold:0.2});
+
+  // Hero splits trigger immediately
+  document.querySelectorAll('.hero [data-split]').forEach(function(el){
+    setTimeout(function(){el.classList.add('revealed');},300);
+  });
+})();
+
+// ═══════════════════════════════════════════
+// 4. LIVE DATA ANIMATIONS
+// ═══════════════════════════════════════════
+function countUp(el,target,prefix,suffix,duration){
+  var start=0,step=target/60,current=0;
+  el.classList.add('counted');
+  var timer=setInterval(function(){
+    current=Math.min(current+step,target);
+    el.textContent=prefix+Math.round(current).toLocaleString('en-IN')+suffix;
+    if(current>=target) clearInterval(timer);
+  },duration/60);
+}
+
+function animateRankBars(){
+  var bars=document.querySelectorAll('#rank-bars .rb-in');
+  bars.forEach(function(bar,i){
+    var w=bar.getAttribute('data-w');
+    setTimeout(function(){bar.style.width=w+'%';},i*120);
+  });
+}
+
+function animatePromoBars(){
+  document.querySelectorAll('#promo-bars .pb-bar').forEach(function(bar,i){
+    setTimeout(function(){bar.classList.add('drawn');},i*100);
+  });
+}
+
+var liveTriggered={tip:false,rank:false,tax:false};
+var liveObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting) return;
+    var type=e.target.getAttribute('data-live');
+    if(liveTriggered[type]) return;
+    liveTriggered[type]=true;
+    if(type==='tip') animatePromoBars();
+    if(type==='rank') animateRankBars();
+    if(type==='tax'){
+      setTimeout(function(){
+        countUp(document.getElementById('tax-hero-val'),397842,'₹','',1400);
+        countUp(document.getElementById('tax-total-val'),15625,'₹','',1200);
+      },200);
+    }
+  });
+},{threshold:0.3});
+
+document.querySelectorAll('[data-live]').forEach(function(el){liveObs.observe(el);});
+
+// ═══════════════════════════════════════════
+// 5. SCROLL REVEAL
+// ═══════════════════════════════════════════
+var revObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('vis');});
+},{threshold:0.08,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(function(el){revObs.observe(el);});
+
+// ═══════════════════════════════════════════
+// 6. MISC
+// ═══════════════════════════════════════════
+window.addEventListener('scroll',function(){
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);
+});
+
+function toggleFaq(el){
+  var open=el.classList.contains('open');
+  document.querySelectorAll('.fi').forEach(function(i){i.classList.remove('open');});
+  if(!open)el.classList.add('open');
+}
+
+function handleSignup(){
+  var v=document.getElementById('email-in').value;
+  if(!v||!v.includes('@')){
+    var inp=document.getElementById('email-in');
+    inp.style.borderColor='rgba(240,112,112,0.5)';
+    inp.style.boxShadow='0 0 0 2px rgba(240,112,112,0.12)';
+    setTimeout(function(){inp.style.borderColor='';inp.style.boxShadow='';},1600);
+    return;
+  }
+  // Bump live counter
+  var lc=document.getElementById('live-count');
+  if(lc){var n=parseInt(lc.textContent.replace(/,/g,''))||2437;lc.textContent=(n+1).toLocaleString('en-IN');}
+  // Inline glass success state — no alert
+  document.querySelector('.cta-row').innerHTML=
+    '<div style="display:flex;align-items:center;gap:0.75rem;background:rgba(45,212,160,0.08);border:1px solid rgba(45,212,160,0.22);border-radius:100px;padding:0.85rem 1.7rem;width:100%;justify-content:center;">'
+    +'<span style="width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;flex-shrink:0;box-shadow:0 0 6px rgba(45,212,160,0.5);"></span>'
+    +'<span style="font-family:Cormorant Garamond,serif;font-size:1.15rem;font-weight:600;color:var(--ok);">You\'re on the list. We\'ll be in touch. ◆</span>'
+    +'</div>';
+}
+
+// ── VIDEO MODAL ──
+function openVideoModal(){
+  document.getElementById('video-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeVideoModal(){
+  document.getElementById('video-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeModal(e){
+  if(e.target===document.getElementById('video-modal')) closeVideoModal();
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeVideoModal();});
+
+function toggleMode(){
+  document.body.classList.toggle('light-mode');
+  document.querySelector('.mode-btn').textContent=document.body.classList.contains('light-mode')?'🌙':'☀️';
+}
+
+// Light mode CSS injection
+var lightCSS=`
+body.light-mode{background:#EDE8DF;--forest-card:rgba(255,255,255,0.55);--glass:rgba(0,0,0,0.03);--glass-b:rgba(0,0,0,0.07);--glass-h:rgba(0,0,0,0.06);--t1:rgba(10,25,16,0.92);--t2:rgba(10,25,16,0.58);--t3:rgba(10,25,16,0.36);--t4:rgba(10,25,16,0.18);}
+body.light-mode nav{background:rgba(237,232,223,0.82);}
+body.light-mode nav.scrolled{background:rgba(237,232,223,0.97);}
+`;
+var st=document.createElement('style');st.textContent=lightCSS;document.head.appendChild(st);
+</script>
+<script src="artha-blur-mode.js"></script>
+<script src="artha-ai-drawer.js"></script>
+</body>
+</html>

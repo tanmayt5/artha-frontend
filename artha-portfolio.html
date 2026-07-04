@@ -1,0 +1,2346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artha — Your Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#0A1E13;--forest-mid:#1A3A2A;--forest-card:rgba(18,42,28,0.6);
+  --gold:#C9952E;--gold-mid:#D4A843;--gold-glow:rgba(201,149,46,0.15);
+  --glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.07);--glass-h:rgba(255,255,255,0.09);
+  --t1:rgba(255,255,255,0.93);--t2:rgba(255,255,255,0.58);--t3:rgba(255,255,255,0.32);--t4:rgba(255,255,255,0.12);
+  --ok:#2DD4A0;--err:#F07070;--info:#60A5FA;--warn:#FBBF24;
+  --fd:'Cormorant Garamond',Georgia,serif;
+  --fb:'Inter',system-ui,sans-serif;
+  --fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fb);background:var(--forest);color:var(--t1);overflow-x:hidden;min-height:100vh;}
+
+/* AMBIENT ORBS */
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;}
+.orb1{width:600px;height:600px;background:rgba(201,149,46,0.05);top:-180px;right:-100px;animation:ob 22s ease-in-out infinite;}
+.orb2{width:450px;height:450px;background:rgba(26,58,42,0.4);bottom:-80px;left:-60px;animation:ob 18s 7s ease-in-out infinite;}
+@keyframes ob{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-15px) scale(1.06);}}
+
+/* NOISE */
+body::before{content:'';position:fixed;inset:0;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;opacity:0.5;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:66px;background:rgba(10,30,19,0.6);backdrop-filter:blur(28px);border-bottom:1px solid var(--glass-b);transition:background 0.4s;}
+nav.scrolled{background:rgba(10,30,19,0.94);}
+.logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;}
+.logo-sym{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(201,149,46,0.18),rgba(201,149,46,0.04));border:1px solid rgba(201,149,46,0.28);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:0.95rem;color:var(--gold-mid);font-weight:600;}
+.logo-word{font-family:var(--fd);font-size:1.45rem;font-weight:600;color:var(--t1);letter-spacing:-0.5px;}
+.logo-word span{color:var(--gold);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:2rem;}
+.nav-links a{font-size:0.8rem;color:var(--t2);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--t1);}
+.nav-cta{background:rgba(201,149,46,0.1);color:var(--gold-mid);border:1px solid rgba(201,149,46,0.3);padding:0.475rem 1.2rem;border-radius:100px;font-size:0.8rem;font-weight:500;text-decoration:none;transition:all 0.2s;}
+
+/* PAGE LAYOUT */
+.page{padding:86px 4% 4rem;position:relative;z-index:2;max-width:1280px;margin:0 auto;}
+
+/* HEADER */
+.page-header{margin-bottom:2rem;}
+.badge{display:inline-flex;align-items:center;gap:0.4rem;background:rgba(201,149,46,0.08);border:1px solid rgba(201,149,46,0.18);color:rgba(201,149,46,0.8);font-size:0.6rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:0.3rem 0.8rem;border-radius:100px;margin-bottom:1rem;}
+.badge::before{content:'◆';font-size:0.48rem;opacity:0.6;}
+.page-header h1{font-family:var(--fd);font-size:2.6rem;font-weight:300;line-height:1.15;margin-bottom:0.5rem;}
+.page-header h1 em{color:var(--gold);font-style:italic;}
+.page-header p{font-size:0.88rem;color:var(--t2);line-height:1.7;max-width:540px;}
+
+/* ─── EMPTY STATE (no portfolio uploaded yet) ─── */
+.empty-state{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start;margin-top:1rem;}
+.upload-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:20px;padding:2rem;position:relative;overflow:hidden;}
+.upload-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,149,46,0.03),transparent);pointer-events:none;}
+.uc-step{font-family:var(--fm);font-size:0.62rem;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.6rem;}
+.uc-title{font-family:var(--fd);font-size:1.4rem;font-weight:600;margin-bottom:0.4rem;position:relative;}
+.uc-desc{font-size:0.82rem;color:var(--t2);line-height:1.7;margin-bottom:1.4rem;position:relative;}
+
+.drop-zone{border:1.5px dashed rgba(201,149,46,0.3);border-radius:14px;padding:2rem 1.2rem;text-align:center;cursor:pointer;transition:all 0.25s;background:rgba(201,149,46,0.03);margin-bottom:1rem;}
+.drop-zone:hover,.drop-zone.dragover{border-color:rgba(201,149,46,0.6);background:rgba(201,149,46,0.06);}
+.drop-zone.has-file{border-style:solid;border-color:rgba(45,212,160,0.4);background:rgba(45,212,160,0.05);}
+.dz-icon{width:42px;height:42px;border-radius:11px;background:rgba(201,149,46,0.1);border:1px solid rgba(201,149,46,0.22);display:inline-flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:0.85rem;color:var(--gold-mid);margin-bottom:0.85rem;}
+.drop-zone.has-file .dz-icon{background:rgba(45,212,160,0.1);border-color:rgba(45,212,160,0.3);color:var(--ok);}
+.dz-text{font-size:0.85rem;color:var(--t1);margin-bottom:0.3rem;}
+.dz-sub{font-size:0.72rem;color:var(--t3);}
+#fileInput{display:none;}
+
+.pwd-field{margin-bottom:1rem;}
+.pwd-label{display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;color:var(--t3);font-family:var(--fm);margin-bottom:0.45rem;letter-spacing:0.5px;}
+.pwd-help{color:var(--gold-mid);cursor:help;text-decoration:underline dotted;}
+.pwd-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--glass-b);border-radius:10px;padding:0.7rem 1rem;color:var(--t1);font-family:var(--fm);font-size:0.85rem;letter-spacing:0.5px;transition:border-color 0.2s,background 0.2s;}
+.pwd-input:focus{outline:none;border-color:rgba(201,149,46,0.4);background:rgba(255,255,255,0.06);}
+
+.consent-row{display:flex;align-items:flex-start;gap:0.6rem;padding:0.85rem;background:rgba(255,255,255,0.025);border:1px solid var(--glass-b);border-radius:10px;margin-bottom:1.1rem;}
+.consent-row input[type=checkbox]{margin-top:0.18rem;accent-color:var(--gold);width:14px;height:14px;flex-shrink:0;}
+.consent-text{font-size:0.72rem;color:var(--t2);line-height:1.6;}
+.consent-text a{color:var(--gold-mid);text-decoration:underline;}
+
+.btn-row{display:flex;gap:0.6rem;align-items:center;}
+.btn-p{background:linear-gradient(135deg,var(--gold),#B8892A);color:#0D1409;border:none;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.25s cubic-bezier(.23,1,.32,1);font-family:var(--fb);display:inline-flex;align-items:center;gap:0.4rem;}
+.btn-p:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 28px rgba(201,149,46,0.3);}
+.btn-p:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-g{background:var(--glass);color:var(--t1);border:1px solid var(--glass-b);padding:0.75rem 1.5rem;border-radius:100px;font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:var(--fb);}
+.btn-g:hover{background:var(--glass-h);border-color:rgba(201,149,46,0.2);}
+.btn-link{background:transparent;color:var(--t3);border:none;font-size:0.75rem;cursor:pointer;text-decoration:underline;font-family:var(--fb);padding:0.5rem;}
+.btn-link:hover{color:var(--t2);}
+
+/* HOW IT WORKS (right column of empty state) */
+.how-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:20px;padding:1.75rem;}
+.how-title{font-family:var(--fd);font-size:1.15rem;font-weight:600;margin-bottom:1rem;}
+.how-step{display:flex;gap:0.85rem;padding:0.7rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.how-step:last-child{border-bottom:none;}
+.how-num{width:26px;height:26px;border-radius:7px;background:rgba(201,149,46,0.08);border:1px solid rgba(201,149,46,0.2);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:0.7rem;color:var(--gold-mid);flex-shrink:0;}
+.how-step-text{flex:1;}
+.how-step-title{font-size:0.82rem;color:var(--t1);font-weight:500;margin-bottom:0.15rem;}
+.how-step-desc{font-size:0.72rem;color:var(--t2);line-height:1.55;}
+.how-step-desc a{color:var(--gold-mid);text-decoration:underline;}
+
+.how-trust{margin-top:1.1rem;padding:0.85rem;background:rgba(45,212,160,0.04);border:1px solid rgba(45,212,160,0.14);border-radius:10px;font-size:0.72rem;color:rgba(45,212,160,0.85);line-height:1.6;}
+.how-trust strong{color:var(--ok);font-weight:600;}
+
+/* ─── LOADING STATE ─── */
+.loading-state{display:none;padding:4rem 2rem;text-align:center;}
+.loading-state.active{display:block;}
+.loader{display:inline-flex;gap:0.5rem;margin-bottom:1.5rem;}
+.loader span{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:lpulse 1.2s ease-in-out infinite;}
+.loader span:nth-child(2){animation-delay:0.15s;}
+.loader span:nth-child(3){animation-delay:0.3s;}
+@keyframes lpulse{0%,100%{opacity:0.25;transform:scale(0.8);}50%{opacity:1;transform:scale(1.3);}}
+.loading-title{font-family:var(--fd);font-size:1.4rem;font-weight:600;color:var(--t1);margin-bottom:0.5rem;}
+.loading-sub{font-size:0.82rem;color:var(--t2);line-height:1.7;max-width:440px;margin:0 auto;}
+.loading-progress{margin-top:1.5rem;font-family:var(--fm);font-size:0.7rem;color:var(--t3);min-height:1rem;}
+
+/* ─── ERROR STATE ─── */
+.error-state{display:none;background:rgba(240,112,112,0.05);border:1px solid rgba(240,112,112,0.2);border-radius:14px;padding:1.2rem 1.4rem;margin-top:1.2rem;}
+.error-state.active{display:block;}
+.error-title{font-family:var(--fd);font-size:1rem;color:rgba(240,112,112,0.9);margin-bottom:0.35rem;font-weight:600;}
+.error-msg{font-size:0.78rem;color:var(--t2);line-height:1.7;}
+.error-msg code{background:rgba(0,0,0,0.3);padding:0.1rem 0.3rem;border-radius:3px;font-family:var(--fm);font-size:0.7rem;color:var(--t1);}
+
+/* ─── PORTFOLIO VIEW ─── */
+.portfolio-view{display:none;}
+.portfolio-view.active{display:block;}
+
+/* Data freshness bar */
+.freshness-bar{display:flex;align-items:center;justify-content:space-between;background:var(--glass);border:1px solid var(--glass-b);border-radius:12px;padding:0.7rem 1.1rem;margin-bottom:1.5rem;font-size:0.72rem;}
+.fb-left{display:flex;align-items:center;gap:0.7rem;color:var(--t2);}
+.fb-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px rgba(45,212,160,0.5);}
+.fb-right{display:flex;align-items:center;gap:1rem;color:var(--t3);font-family:var(--fm);}
+.fb-action{background:transparent;border:none;color:var(--gold-mid);font-size:0.7rem;cursor:pointer;text-decoration:underline;font-family:var(--fb);}
+.fb-action:hover{opacity:0.8;}
+
+/* Hero summary cards */
+.summary-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+.sum-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:18px;padding:1.5rem;position:relative;overflow:hidden;}
+.sum-card.hero{grid-row:span 1;}
+.sum-lbl{font-family:var(--fm);font-size:0.6rem;color:var(--t3);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:0.6rem;}
+.sum-val{font-family:var(--fd);font-size:2.4rem;font-weight:600;color:var(--gold-mid);letter-spacing:-1px;line-height:1;margin-bottom:0.4rem;}
+.sum-val.small{font-size:1.7rem;}
+.sum-chg{font-size:0.78rem;color:var(--t3);}
+.sum-chg.up{color:var(--ok);}
+.sum-chg.dn{color:var(--err);}
+.sum-chg strong{font-weight:500;}
+.sum-sub{font-size:0.7rem;color:var(--t3);margin-top:0.35rem;font-family:var(--fm);}
+
+/* Allocation cards */
+.alloc-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+.alloc-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:18px;padding:1.5rem;}
+.alloc-title{font-family:var(--fd);font-size:1.15rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;}
+.alloc-title-pill{font-family:var(--fm);font-size:0.6rem;color:var(--t3);font-weight:400;letter-spacing:1.5px;text-transform:uppercase;}
+.alloc-row{display:flex;align-items:center;gap:0.85rem;padding:0.55rem 0;border-bottom:1px solid rgba(255,255,255,0.035);font-size:0.8rem;}
+.alloc-row:last-child{border-bottom:none;}
+.alloc-name{flex:1;color:var(--t1);font-size:0.78rem;}
+.alloc-bar{flex:1.4;height:4px;background:var(--t4);border-radius:2px;overflow:hidden;}
+.alloc-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-mid));border-radius:2px;}
+.alloc-pct{font-family:var(--fm);font-size:0.72rem;color:var(--gold-mid);width:50px;text-align:right;}
+.alloc-val{font-family:var(--fm);font-size:0.7rem;color:var(--t2);width:90px;text-align:right;}
+
+/* Holdings table */
+.holdings-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:18px;padding:1.5rem;}
+.holdings-title{font-family:var(--fd);font-size:1.15rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;}
+.holdings-meta{font-family:var(--fm);font-size:0.6rem;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;}
+.h-table-wrap{overflow-x:auto;}
+.h-table{width:100%;border-collapse:collapse;}
+.h-table th{padding:0.6rem 0.7rem;text-align:left;font-size:0.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:600;border-bottom:1px solid var(--t4);white-space:nowrap;font-family:var(--fm);}
+.h-table th.num{text-align:right;}
+.h-table td{padding:0.7rem;font-size:0.78rem;color:var(--t2);border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
+.h-table td.num{text-align:right;font-family:var(--fm);font-size:0.74rem;color:var(--t1);white-space:nowrap;}
+.h-table tr:last-child td{border-bottom:none;}
+.h-table tr:hover td{background:rgba(255,255,255,0.02);}
+.h-name{font-weight:500;color:var(--t1);font-size:0.78rem;line-height:1.35;}
+.h-meta{font-size:0.65rem;color:var(--t3);margin-top:0.15rem;font-family:var(--fm);}
+.h-cat{display:inline-block;font-size:0.6rem;padding:0.15rem 0.45rem;border-radius:100px;background:var(--glass);border:1px solid var(--glass-b);color:var(--t3);font-family:var(--fm);letter-spacing:0.5px;}
+.h-cat.equity{color:var(--gold-mid);background:rgba(201,149,46,0.08);border-color:rgba(201,149,46,0.22);}
+.h-cat.debt{color:var(--info);background:rgba(96,165,250,0.08);border-color:rgba(96,165,250,0.22);}
+.h-cat.hybrid{color:var(--ok);background:rgba(45,212,160,0.07);border-color:rgba(45,212,160,0.2);}
+.h-cat.liquid{color:var(--t2);}
+.pos{color:var(--ok);}
+.neg{color:var(--err);}
+
+/* Warnings panel */
+.warnings-card{background:rgba(251,191,36,0.04);border:1px solid rgba(251,191,36,0.15);border-radius:14px;padding:1rem 1.2rem;margin-top:1.5rem;}
+
+/* ─── OVERLAP SECTION (Day 10) ─── */
+.overlap-section{margin-bottom:1.5rem;}
+.overlap-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;}
+.overlap-title{font-family:var(--fd);font-size:1.6rem;font-weight:600;color:var(--t1);letter-spacing:-0.3px;}
+.overlap-title em{color:var(--gold);font-style:italic;}
+.overlap-sub{font-size:0.74rem;color:var(--t3);font-family:var(--fm);letter-spacing:1px;text-transform:uppercase;}
+
+/* Headline summary card — the screenshot moment */
+.overlap-headline{background:linear-gradient(135deg,rgba(201,149,46,0.06),rgba(201,149,46,0.02));border:1px solid rgba(201,149,46,0.18);border-radius:18px;padding:1.6rem 1.8rem;margin-bottom:1.2rem;position:relative;overflow:hidden;}
+.overlap-headline::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;background:radial-gradient(circle,rgba(201,149,46,0.08),transparent 70%);pointer-events:none;}
+.oh-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:1rem;position:relative;}
+.oh-stat{text-align:left;}
+.oh-stat-num{font-family:var(--fd);font-size:1.95rem;font-weight:600;color:var(--gold-mid);line-height:1;letter-spacing:-0.5px;}
+.oh-stat-num.warn{color:var(--warn);}
+.oh-stat-num.crit{color:rgba(240,112,112,0.9);}
+.oh-stat-lbl{font-family:var(--fm);font-size:0.6rem;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-top:0.35rem;}
+.oh-message{font-size:0.85rem;color:var(--t1);line-height:1.7;position:relative;border-top:1px solid rgba(201,149,46,0.14);padding-top:0.95rem;}
+.oh-message strong{color:var(--gold-mid);font-weight:500;}
+
+/* Two-column overlap layout */
+.overlap-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:1rem;margin-bottom:1.2rem;}
+
+/* Top overlaps card — ranked list */
+.over-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:18px;padding:1.4rem 1.5rem;}
+.over-title{font-family:var(--fd);font-size:1.1rem;font-weight:600;margin-bottom:0.25rem;display:flex;align-items:center;justify-content:space-between;}
+.over-sub{font-size:0.7rem;color:var(--t3);font-family:var(--fm);letter-spacing:1px;margin-bottom:0.95rem;}
+.over-pill{font-family:var(--fm);font-size:0.58rem;color:var(--t3);font-weight:400;letter-spacing:1.5px;text-transform:uppercase;padding:0.2rem 0.55rem;border:1px solid var(--glass-b);border-radius:100px;}
+
+.olap-row{display:grid;grid-template-columns:1.6rem 1fr auto;gap:0.7rem;align-items:center;padding:0.55rem 0;border-bottom:1px solid rgba(255,255,255,0.035);}
+.olap-row:last-child{border-bottom:none;}
+.olap-rank{font-family:var(--fm);font-size:0.65rem;color:var(--t3);text-align:center;}
+.olap-stock{min-width:0;}
+.olap-name{font-size:0.78rem;color:var(--t1);font-weight:500;line-height:1.3;}
+.olap-meta{font-size:0.66rem;color:var(--t3);font-family:var(--fm);margin-top:0.18rem;letter-spacing:0.3px;}
+.olap-meta-sector{display:inline-block;padding:0 0.4rem;background:rgba(255,255,255,0.04);border-radius:3px;margin-right:0.35rem;}
+.olap-vals{text-align:right;}
+.olap-pct{font-family:var(--fm);font-size:0.85rem;color:var(--gold-mid);font-weight:500;}
+.olap-fund-count{font-family:var(--fm);font-size:0.64rem;color:var(--t3);margin-top:0.18rem;}
+.olap-fund-count strong{color:var(--gold-mid);}
+
+/* Pairwise matrix — heatmap */
+.matrix-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:18px;padding:1.4rem 1.5rem;}
+.matrix-wrap{overflow-x:auto;margin-top:0.95rem;}
+.matrix-table{border-collapse:separate;border-spacing:2px;font-family:var(--fm);font-size:0.62rem;}
+.matrix-table th,.matrix-table td{padding:0.45rem 0.55rem;text-align:center;vertical-align:middle;}
+.matrix-table th{color:var(--t3);font-weight:500;letter-spacing:0.5px;}
+.matrix-table .row-label{text-align:right;color:var(--t2);font-size:0.65rem;font-weight:500;padding-right:0.6rem;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.matrix-table .col-label{padding-bottom:0.35rem;font-size:0.55rem;line-height:1.1;writing-mode:vertical-rl;text-orientation:mixed;height:80px;color:var(--t2);transform:rotate(180deg);}
+.matrix-cell{border-radius:5px;color:var(--t1);min-width:38px;font-weight:500;cursor:default;transition:transform 0.15s;}
+.matrix-cell.diag{background:rgba(255,255,255,0.03);color:var(--t4);}
+.matrix-cell:hover{transform:scale(1.1);outline:1px solid rgba(255,255,255,0.18);}
+
+.matrix-legend{display:flex;align-items:center;gap:0.6rem;margin-top:1rem;font-family:var(--fm);font-size:0.6rem;color:var(--t3);letter-spacing:0.5px;}
+.matrix-legend-bar{flex:1;max-width:200px;height:7px;border-radius:2px;background:linear-gradient(90deg,rgba(45,212,160,0.5),rgba(251,191,36,0.6),rgba(240,112,112,0.7));}
+
+/* Sector exposure */
+.sector-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:18px;padding:1.4rem 1.5rem;margin-bottom:1.2rem;}
+.sec-row{display:grid;grid-template-columns:130px 1fr 60px;gap:0.85rem;align-items:center;padding:0.45rem 0;font-size:0.78rem;}
+.sec-name{color:var(--t1);}
+.sec-bar{height:5px;background:var(--t4);border-radius:3px;overflow:hidden;position:relative;}
+.sec-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-mid));border-radius:3px;}
+.sec-pct{font-family:var(--fm);font-size:0.72rem;color:var(--gold-mid);text-align:right;}
+
+/* Top stocks across portfolio (look-through view) */
+.topstocks-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:18px;padding:1.4rem 1.5rem;margin-bottom:1.2rem;}
+.ts-intro{font-size:0.74rem;color:var(--t3);line-height:1.65;margin-bottom:1rem;font-family:var(--fb);}
+.ts-intro strong{color:var(--t2);font-weight:500;}
+.ts-row{display:grid;grid-template-columns:1fr 90px 1fr 70px;gap:0.85rem;align-items:center;padding:0.55rem 0;font-size:0.78rem;border-bottom:1px solid rgba(255,255,255,0.04);}
+.ts-row:last-child{border-bottom:none;}
+.ts-stock-block{min-width:0;}
+.ts-stock-name{color:var(--t1);font-size:0.82rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ts-stock-sector{font-family:var(--fm);font-size:0.58rem;letter-spacing:0.8px;color:var(--t3);text-transform:uppercase;margin-top:0.18rem;}
+.ts-fund-count{font-family:var(--fm);font-size:0.65rem;color:var(--t2);background:rgba(255,255,255,0.025);border:1px solid var(--glass-b);padding:0.2rem 0.55rem;border-radius:100px;text-align:center;letter-spacing:0.3px;white-space:nowrap;}
+.ts-bar{height:5px;background:var(--t4);border-radius:3px;overflow:hidden;position:relative;}
+.ts-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold-mid),var(--gold));}
+.ts-bar-fill.high{background:linear-gradient(90deg,rgba(240,112,112,0.85),var(--err));}
+.ts-pct{font-family:var(--fm);font-size:0.74rem;color:var(--gold-mid);text-align:right;font-weight:500;}
+.ts-pct.high{color:rgba(240,112,112,0.95);}
+.ts-summary{margin-top:0.9rem;padding-top:0.85rem;border-top:1px solid var(--glass-b);font-size:0.72rem;color:var(--t3);line-height:1.65;}
+.ts-summary strong{color:var(--t1);font-weight:500;}
+@media(max-width:780px){
+  .ts-row{grid-template-columns:1fr auto;gap:0.5rem;}
+  .ts-row .ts-fund-count,.ts-row .ts-bar{grid-column:span 2;}
+}
+
+/* Overlap warnings (severity-coloured) */
+.olap-warnings{margin-top:0.5rem;}
+.olap-warn{padding:0.85rem 1rem;border-radius:11px;margin-bottom:0.6rem;font-size:0.78rem;color:var(--t1);line-height:1.6;display:flex;gap:0.7rem;align-items:flex-start;}
+.olap-warn.high{background:rgba(240,112,112,0.07);border:1px solid rgba(240,112,112,0.22);}
+.olap-warn.medium{background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.18);}
+.olap-warn.low{background:var(--glass);border:1px solid var(--glass-b);}
+.olap-warn-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:0.6rem;font-weight:600;flex-shrink:0;margin-top:0.1rem;}
+.olap-warn.high .olap-warn-icon{background:rgba(240,112,112,0.18);color:rgba(240,112,112,0.95);}
+.olap-warn.medium .olap-warn-icon{background:rgba(251,191,36,0.18);color:var(--warn);}
+.olap-warn.low .olap-warn-icon{background:var(--glass-b);color:var(--t2);}
+.olap-warn-body{flex:1;}
+
+/* Loading shimmer for overlap section */
+.overlap-loading{background:var(--forest-card);border:1px solid var(--glass-b);border-radius:18px;padding:1.6rem;text-align:center;color:var(--t3);font-size:0.78rem;font-family:var(--fm);letter-spacing:0.5px;}
+.overlap-loading .loader{display:inline-flex;gap:0.4rem;margin-right:0.5rem;}
+.overlap-loading .loader span{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:lpulse 1.2s ease-in-out infinite;}
+.overlap-loading .loader span:nth-child(2){animation-delay:0.15s;}
+.overlap-loading .loader span:nth-child(3){animation-delay:0.3s;}
+
+/* Excluded schemes panel (Day 12) — debt/ETF/FoF funds shown with reasons */
+.excluded-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:14px;padding:1.1rem 1.3rem;margin-top:1rem;}
+.excluded-title{font-family:var(--fm);font-size:0.6rem;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.7rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;}
+.excluded-title-dot{width:6px;height:6px;border-radius:50%;background:var(--info);opacity:0.7;}
+.excluded-list{display:flex;flex-direction:column;gap:0.55rem;}
+.excluded-row{display:flex;align-items:flex-start;gap:0.8rem;padding:0.55rem 0.75rem;background:rgba(255,255,255,0.02);border:1px solid var(--glass-b);border-radius:10px;font-size:0.74rem;}
+.excluded-badge{font-family:var(--fm);font-size:0.55rem;font-weight:600;letter-spacing:1.2px;padding:0.18rem 0.5rem;border-radius:100px;color:var(--t1);flex-shrink:0;margin-top:0.05rem;}
+.excluded-badge.debt{background:rgba(96,165,250,0.12);color:rgba(96,165,250,0.95);border:1px solid rgba(96,165,250,0.25);}
+.excluded-badge.etf{background:rgba(168,202,135,0.12);color:rgba(168,202,135,0.95);border:1px solid rgba(168,202,135,0.25);}
+.excluded-badge.index{background:rgba(168,202,135,0.12);color:rgba(168,202,135,0.95);border:1px solid rgba(168,202,135,0.25);}
+.excluded-badge.fof{background:rgba(201,149,46,0.12);color:var(--gold-mid);border:1px solid rgba(201,149,46,0.25);}
+.excluded-badge.hybrid{background:rgba(45,212,160,0.08);color:var(--ok);border:1px solid rgba(45,212,160,0.22);}
+.excluded-badge.failed{background:rgba(240,112,112,0.1);color:rgba(240,112,112,0.95);border:1px solid rgba(240,112,112,0.25);}
+.excluded-info{flex:1;min-width:0;}
+.excluded-scheme-name{color:var(--t1);font-weight:500;margin-bottom:0.18rem;line-height:1.3;}
+.excluded-reason{color:var(--t3);font-size:0.68rem;line-height:1.5;}
+
+/* ─── TAX SECTION (Day 16) ─── */
+.tax-section{margin-bottom:1.5rem;}
+.tax-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;}
+.tax-title{font-family:var(--fd);font-size:1.6rem;font-weight:600;color:var(--t1);letter-spacing:-0.3px;}
+.tax-title em{color:var(--gold);font-style:italic;}
+.tax-sub{font-size:0.74rem;color:var(--t3);font-family:var(--fm);letter-spacing:1px;text-transform:uppercase;}
+
+/* Disclaimer banner — always visible, calmer than warning red */
+.tax-disclaimer{background:rgba(96,165,250,0.05);border:1px solid rgba(96,165,250,0.18);border-radius:13px;padding:0.85rem 1.1rem;margin-bottom:1.2rem;display:flex;gap:0.7rem;align-items:flex-start;}
+.tax-disc-icon{width:22px;height:22px;border-radius:50%;background:rgba(96,165,250,0.15);color:rgba(96,165,250,0.95);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:0.7rem;font-weight:600;flex-shrink:0;}
+.tax-disc-body{flex:1;font-size:0.74rem;color:var(--t2);line-height:1.65;}
+.tax-disc-body strong{color:var(--t1);font-weight:500;}
+
+/* Tax hero stats — three-column with calmer styling than overlap */
+.tax-hero{background:linear-gradient(135deg,rgba(45,212,160,0.04),rgba(96,165,250,0.03));border:1px solid rgba(45,212,160,0.14);border-radius:18px;padding:1.5rem 1.7rem;margin-bottom:1.2rem;}
+.tax-hero-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;margin-bottom:0.85rem;}
+.tax-stat-lbl{font-family:var(--fm);font-size:0.58rem;color:var(--t3);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:0.5rem;}
+.tax-stat-num{font-family:var(--fd);font-size:1.85rem;font-weight:600;color:var(--t1);line-height:1;letter-spacing:-0.5px;}
+.tax-stat-num.ok{color:var(--ok);}
+.tax-stat-num.muted{color:var(--t2);}
+.tax-stat-sub{font-family:var(--fm);font-size:0.66rem;color:var(--t3);margin-top:0.35rem;letter-spacing:0.5px;}
+.tax-summary-line{font-size:0.82rem;color:var(--t1);line-height:1.7;border-top:1px solid rgba(45,212,160,0.1);padding-top:0.9rem;}
+.tax-summary-line strong{color:var(--gold-mid);font-weight:500;}
+
+/* Tax insight cards — severity-coloured like overlap warnings */
+.tax-insights{display:flex;flex-direction:column;gap:0.7rem;margin-bottom:1.2rem;}
+.tax-insight{padding:1rem 1.2rem;border-radius:13px;display:flex;gap:0.85rem;align-items:flex-start;}
+.tax-insight.high{background:rgba(201,149,46,0.06);border:1px solid rgba(201,149,46,0.22);}
+.tax-insight.medium{background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.18);}
+.tax-insight.low{background:var(--glass);border:1px solid var(--glass-b);}
+.tax-insight-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:0.72rem;font-weight:600;flex-shrink:0;margin-top:0.05rem;}
+.tax-insight.high .tax-insight-icon{background:rgba(201,149,46,0.16);color:var(--gold-mid);}
+.tax-insight.medium .tax-insight-icon{background:rgba(251,191,36,0.18);color:var(--warn);}
+.tax-insight.low .tax-insight-icon{background:var(--glass-b);color:var(--t2);}
+.tax-insight-body{flex:1;min-width:0;}
+.tax-insight-title{font-family:var(--fd);font-size:1.02rem;font-weight:600;color:var(--t1);margin-bottom:0.35rem;line-height:1.3;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+.tax-insight-pill{font-family:var(--fm);font-size:0.56rem;color:var(--t3);letter-spacing:1.2px;text-transform:uppercase;padding:0.15rem 0.45rem;border:1px solid var(--glass-b);border-radius:100px;font-weight:400;}
+.tax-insight-msg{font-size:0.79rem;color:var(--t2);line-height:1.65;}
+
+/* Details panels — expandable, contain breakdowns */
+.tax-details{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.tax-detail-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:14px;padding:1.1rem 1.3rem;}
+.tax-detail-title{font-family:var(--fd);font-size:1rem;font-weight:600;color:var(--t1);margin-bottom:0.25rem;display:flex;align-items:center;justify-content:space-between;}
+.tax-detail-sub{font-size:0.68rem;color:var(--t3);font-family:var(--fm);letter-spacing:0.5px;margin-bottom:0.85rem;}
+.tax-detail-list{display:flex;flex-direction:column;gap:0.4rem;}
+.tax-detail-row{display:flex;justify-content:space-between;align-items:center;padding:0.45rem 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.77rem;color:var(--t1);}
+.tax-detail-row:last-child{border-bottom:none;}
+.tax-detail-row-l{flex:1;min-width:0;padding-right:0.6rem;}
+.tax-detail-row-r{font-family:var(--fm);font-size:0.74rem;color:var(--gold-mid);}
+.tax-detail-empty{font-size:0.74rem;color:var(--t3);padding:0.5rem 0;line-height:1.5;}
+
+/* Caveats — collapsible, secondary */
+.tax-caveats{font-size:0.7rem;color:var(--t3);background:rgba(255,255,255,0.02);border:1px solid var(--glass-b);border-radius:10px;padding:0.8rem 1rem;line-height:1.6;}
+.tax-caveats-title{font-family:var(--fm);font-size:0.58rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:0.45rem;font-weight:600;}
+.tax-caveats ul{list-style:none;padding:0;margin:0;}
+.tax-caveats li{padding:0.15rem 0 0.15rem 1rem;position:relative;}
+.tax-caveats li::before{content:'·';position:absolute;left:0.2rem;color:var(--t4);}
+
+/* Hybrid review panel (Day 16.5 review fix) */
+.tax-review-card{background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.22);border-radius:13px;padding:1.1rem 1.3rem;margin-bottom:1rem;}
+.tax-review-title{font-family:var(--fm);font-size:0.6rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--warn);margin-bottom:0.55rem;font-weight:600;display:flex;align-items:center;gap:0.4rem;}
+.tax-review-title::before{content:'!';width:14px;height:14px;border-radius:50%;background:rgba(251,191,36,0.25);color:var(--warn);display:inline-flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;}
+.tax-review-sub{font-size:0.74rem;color:var(--t2);line-height:1.6;margin-bottom:0.7rem;}
+.tax-review-list{display:flex;flex-direction:column;gap:0.4rem;}
+.tax-review-row{display:flex;justify-content:space-between;align-items:flex-start;padding:0.45rem 0.6rem;background:rgba(255,255,255,0.025);border:1px solid var(--glass-b);border-radius:9px;font-size:0.76rem;gap:0.8rem;}
+.tax-review-row-l{flex:1;min-width:0;}
+.tax-review-row-name{color:var(--t1);font-weight:500;line-height:1.3;}
+.tax-review-row-cat{font-size:0.66rem;color:var(--t3);font-family:var(--fm);margin-top:0.15rem;letter-spacing:0.5px;}
+.tax-review-row-r{font-family:var(--fm);font-size:0.74rem;color:var(--warn);white-space:nowrap;}
+
+@media(max-width:900px){
+  .tax-hero-row{grid-template-columns:1fr;gap:0.85rem;}
+  .tax-details{grid-template-columns:1fr;}
+}
+
+@media(max-width:900px){
+  .overlap-grid{grid-template-columns:1fr;}
+  .oh-stat-row{grid-template-columns:1fr 1fr;gap:0.85rem;}
+  .matrix-table .col-label{height:70px;font-size:0.5rem;}
+  .matrix-cell{min-width:32px;font-size:0.55rem;}
+}
+.warnings-title{font-family:var(--fm);font-size:0.6rem;color:var(--warn);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.5rem;font-weight:600;}
+.warnings-list{list-style:none;}
+.warnings-list li{font-size:0.72rem;color:var(--t2);line-height:1.6;padding:0.25rem 0 0.25rem 1rem;position:relative;}
+.warnings-list li::before{content:'·';color:var(--warn);position:absolute;left:0;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--glass-b);border-radius:3px;}
+
+@media(max-width:900px){
+  .empty-state{grid-template-columns:1fr;}
+  .summary-grid{grid-template-columns:1fr;}
+  .alloc-grid{grid-template-columns:1fr;}
+  nav .nav-links a:not(.nav-cta){display:none;}
+  .page-header h1{font-size:2rem;}
+  .sum-val{font-size:2rem;}
+}
+/* ─── FUND SCORES SECTION (Day 19) ─── */
+.fs-section{margin-bottom:1.5rem;}
+.fs-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;}
+.fs-title{font-family:var(--fd);font-size:1.6rem;font-weight:600;color:var(--t1);letter-spacing:-0.3px;}
+.fs-title em{color:var(--gold);font-style:italic;}
+.fs-sub{font-size:0.74rem;color:var(--t3);font-family:var(--fm);letter-spacing:1px;text-transform:uppercase;}
+
+/* Tier-2 banner */
+.fs-tier-banner{background:rgba(255,255,255,0.025);border:1px solid var(--glass-b);border-radius:11px;padding:0.75rem 1rem;margin-bottom:1.2rem;font-size:0.72rem;color:var(--t3);line-height:1.6;}
+.fs-tier-banner strong{color:var(--t2);font-weight:500;}
+
+/* Fund card grid — 2 columns desktop, 1 mobile */
+.fs-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:900px){ .fs-grid{grid-template-columns:1fr;} }
+
+.fs-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:16px;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:0.85rem;}
+.fs-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:0.6rem;}
+.fs-card-name{font-family:var(--fd);font-size:1.05rem;font-weight:600;color:var(--t1);line-height:1.3;}
+.fs-card-cat{font-family:var(--fm);font-size:0.6rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);margin-top:0.25rem;}
+.fs-conf-pill{font-family:var(--fm);font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:100px;flex-shrink:0;font-weight:500;}
+.fs-conf-pill.high{background:rgba(45,212,160,0.1);color:rgba(45,212,160,0.95);border:1px solid rgba(45,212,160,0.25);}
+.fs-conf-pill.medium{background:rgba(251,191,36,0.08);color:var(--warn);border:1px solid rgba(251,191,36,0.22);}
+.fs-conf-pill.low{background:rgba(240,112,112,0.07);color:rgba(240,112,112,0.95);border:1px solid rgba(240,112,112,0.22);}
+
+.fs-verdict{font-size:0.82rem;color:var(--t1);line-height:1.55;padding:0.6rem 0.85rem;background:rgba(201,149,46,0.04);border-left:2px solid rgba(201,149,46,0.4);border-radius:5px;}
+
+/* Per-dimension score row */
+.fs-dim{display:grid;grid-template-columns:140px 1fr auto;gap:0.7rem;align-items:center;font-size:0.74rem;}
+.fs-dim-name{color:var(--t2);font-size:0.7rem;text-transform:capitalize;}
+.fs-dim-bar{height:5px;background:var(--t4);border-radius:3px;overflow:hidden;position:relative;}
+.fs-dim-bar-fill{height:100%;border-radius:3px;transition:width 0.4s;}
+.fs-dim-bar-fill.s-excellent{background:linear-gradient(90deg,var(--ok),rgba(45,212,160,0.8));}
+.fs-dim-bar-fill.s-good{background:linear-gradient(90deg,var(--gold-mid),var(--gold));}
+.fs-dim-bar-fill.s-mid{background:linear-gradient(90deg,var(--warn),rgba(251,191,36,0.7));}
+.fs-dim-bar-fill.s-weak{background:linear-gradient(90deg,rgba(240,112,112,0.7),var(--err));}
+.fs-dim-score{font-family:var(--fm);font-size:0.7rem;color:var(--t1);text-align:right;min-width:32px;}
+.fs-dim-score.na{color:var(--t3);font-style:italic;}
+
+.fs-dim-context{grid-column:1 / -1;font-size:0.66rem;color:var(--t3);line-height:1.5;padding-left:0;font-family:var(--fm);letter-spacing:0.2px;margin-top:-0.2rem;}
+
+/* Flags inside fund card */
+.fs-flags{display:flex;flex-direction:column;gap:0.35rem;margin-top:0.2rem;}
+.fs-flag{font-size:0.7rem;padding:0.45rem 0.6rem;border-radius:7px;display:flex;align-items:flex-start;gap:0.45rem;line-height:1.5;}
+.fs-flag.high{background:rgba(240,112,112,0.06);border:1px solid rgba(240,112,112,0.18);color:rgba(240,112,112,0.95);}
+.fs-flag.medium{background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.18);color:var(--warn);}
+.fs-flag.low{background:rgba(255,255,255,0.025);border:1px solid var(--glass-b);color:var(--t2);}
+.fs-flag-icon{font-family:var(--fm);font-size:0.6rem;font-weight:700;flex-shrink:0;line-height:1.5;}
+
+/* Loading state for fund scores */
+.fs-loading{background:var(--forest-card);border:1px solid var(--glass-b);border-radius:18px;padding:1.6rem;text-align:center;color:var(--t3);font-size:0.78rem;font-family:var(--fm);letter-spacing:0.5px;}
+.fs-loading .loader{display:inline-flex;gap:0.4rem;margin-right:0.5rem;vertical-align:middle;}
+.fs-loading .loader span{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:lpulse 1.2s ease-in-out infinite;}
+.fs-loading .loader span:nth-child(2){animation-delay:0.15s;}
+.fs-loading .loader span:nth-child(3){animation-delay:0.3s;}
+
+
+/* Canonical NEW pill for nav (Day 22 nav sweep) */
+.nav-pill-new{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:1.2px;color:#D4A843;background:rgba(201,149,46,0.1);border:1px solid rgba(201,149,46,0.3);padding:0.12rem 0.35rem;border-radius:100px;font-weight:500;margin-left:0.25rem;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav id="nav">
+  <a href="index.html" class="logo">
+    <div class="logo-sym">&#8377;</div>
+    <div class="logo-word">Artha<span>.</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="artha-portfolio.html" class="active">Portfolio</a>
+    <a href="artha-tax-simulator.html">Tax tools</a>
+    <a href="artha-screener.html">Screener</a>
+    <a href="artha-analysis.html">AI Analysis <span class="nav-pill-new">NEW</span></a>
+    <a href="artha-learn.html">Learn</a>
+    <a href="index.html#waitlist" class="nav-cta">Get early access &#8594;</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="badge">Your portfolio</div>
+    <h1>See your wealth <em>truthfully.</em></h1>
+    <p>Upload your CAS once. We'll parse every folio across every AMC, fetch live NAVs, and show you what's really happening with your money. No commissions, no upsells.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- EMPTY STATE — Upload widget + How it works     -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="empty-state" id="emptyState">
+
+    <!-- Upload card -->
+    <div class="upload-card">
+      <div class="uc-step">Step 1 of 1</div>
+      <div class="uc-title">Upload your CAS PDF</div>
+      <div class="uc-desc">A Consolidated Account Statement is a single PDF showing every mutual fund holding across CAMS and KFin. Free, takes 2 minutes to request.</div>
+
+      <input type="file" id="fileInput" accept="application/pdf">
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="dz-icon" id="dzIcon">PDF</div>
+        <div class="dz-text" id="dzText">Drop your CAS here, or click to browse</div>
+        <div class="dz-sub" id="dzSub">Encrypted PDF · Max 10 MB · CAMS / KFin format</div>
+      </div>
+
+      <div class="pwd-field">
+        <div class="pwd-label">
+          <span>Password</span>
+          <span class="pwd-help" title="CAMS: PAN (first 5 chars) + DOB in DDMMYYYY. e.g. ABCDE12101990. KFin: usually PAN only.">What's my password?</span>
+        </div>
+        <input type="password" id="pwdInput" class="pwd-input" placeholder="Your PAN-based CAS password" autocomplete="off">
+      </div>
+
+      <div class="consent-row">
+        <input type="checkbox" id="consentBox">
+        <label for="consentBox" class="consent-text">
+          I have read Artha's <a href="privacy.html" target="_blank" rel="noopener">privacy commitment</a> and consent to my CAS being parsed in-memory to compute my portfolio view. I understand my data is never sold or shared, and I can <a href="privacy.html#section-06" target="_blank" rel="noopener">request deletion anytime</a>.
+        </label>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-p" id="parseBtn" onclick="handleParse()" disabled>Parse my portfolio ◆</button>
+        <button class="btn-link" onclick="loadSamplePortfolio()">Or see a sample</button>
+      </div>
+
+      <!-- Error slot -->
+      <div class="error-state" id="errorState">
+        <div class="error-title" id="errorTitle">Couldn't parse your CAS</div>
+        <div class="error-msg" id="errorMsg"></div>
+        <button class="btn-link" id="pasteToggleBtn" onclick="togglePasteFallback()" style="margin-top:0.5rem;padding:0;color:var(--gold-mid);">Try the paste-text fallback instead →</button>
+      </div>
+
+      <!-- Paste-text fallback (review feedback Day 5) -->
+      <div id="pasteFallback" style="display:none;margin-top:1.1rem;padding-top:1.1rem;border-top:1px solid var(--glass-b);">
+        <div style="font-family:var(--fm);font-size:0.62rem;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.45rem;">Alternative · Paste decrypted text</div>
+        <div style="font-size:0.75rem;color:var(--t2);line-height:1.65;margin-bottom:0.7rem;">
+          If your CAS uses an unusual format we can't parse automatically, you can open the PDF locally, select all text (Ctrl+A / Cmd+A), and paste it below. We'll try parsing the raw text instead.
+        </div>
+        <textarea id="pasteInput" placeholder="Paste your decrypted CAS text here..." style="width:100%;min-height:120px;background:rgba(255,255,255,0.04);border:1px solid var(--glass-b);border-radius:10px;padding:0.7rem 1rem;color:var(--t1);font-family:var(--fm);font-size:0.72rem;line-height:1.6;resize:vertical;"></textarea>
+        <div class="btn-row" style="margin-top:0.7rem;">
+          <button class="btn-p" onclick="handlePasteParse()" style="padding:0.6rem 1.2rem;font-size:0.78rem;">Parse pasted text ◆</button>
+          <button class="btn-link" onclick="togglePasteFallback()">Hide</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="how-card">
+      <div class="how-title">How to get your CAS</div>
+
+      <div class="how-step">
+        <div class="how-num">1</div>
+        <div class="how-step-text">
+          <div class="how-step-title">Visit CAMS or KFin</div>
+          <div class="how-step-desc">Go to <a href="https://www.camsonline.com/Investors/Statements/Consolidated-Account-Statement" target="_blank" rel="noopener">CAMSonline</a> (covers HDFC, ICICI, SBI, Kotak…) or <a href="https://mfs.kfintech.com/investor/General/ConsolidatedAccountStatement" target="_blank" rel="noopener">KFin</a> (Nippon, Axis, DSP, UTI…).</div>
+        </div>
+      </div>
+
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <div class="how-step-text">
+          <div class="how-step-title">Enter PAN + registered email</div>
+          <div class="how-step-desc">They'll send a password-protected PDF to your email within minutes. Free, no charge.</div>
+        </div>
+      </div>
+
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <div class="how-step-text">
+          <div class="how-step-title">Upload here</div>
+          <div class="how-step-desc">Password is usually your PAN (first 5 chars) + date of birth in DDMMYYYY format. Example: <code style="font-family:var(--fm);font-size:0.7rem;background:rgba(0,0,0,0.3);padding:0.1rem 0.35rem;border-radius:3px;">ABCDE12101990</code></div>
+        </div>
+      </div>
+
+      <div class="how-step">
+        <div class="how-num">4</div>
+        <div class="how-step-text">
+          <div class="how-step-title">See the truth</div>
+          <div class="how-step-desc">Live portfolio value, allocation, gain/loss per scheme. Updates with NAV every 12 hours.</div>
+        </div>
+      </div>
+
+      <div class="how-trust">
+        <strong>Your privacy.</strong> CAS data is parsed in-memory and discarded after we compute your view. We don't sell data, don't run ads, don't sit between you and your money. Read our <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--ok);text-decoration:underline;">privacy commitment</a>.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- LOADING STATE                                  -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="loading-state" id="loadingState">
+    <div class="loader"><span></span><span></span><span></span></div>
+    <div class="loading-title">Reading your portfolio</div>
+    <div class="loading-sub">Parsing every folio, fetching live NAVs across your schemes, computing allocation. Usually takes 5-15 seconds.</div>
+    <div class="loading-progress" id="loadingProgress">Decrypting PDF...</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- PORTFOLIO VIEW                                 -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="portfolio-view" id="portfolioView">
+
+    <!-- Freshness bar -->
+    <div class="freshness-bar">
+      <div class="fb-left">
+        <div class="fb-dot"></div>
+        <div id="freshnessText">Live data · NAV as of —</div>
+      </div>
+      <div class="fb-right">
+        <span id="schemeCountText">0 schemes</span>
+        <button class="fb-action" onclick="resetPortfolio()">Upload a new CAS</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="summary-grid">
+
+      <div class="sum-card hero">
+        <div class="sum-lbl">Total portfolio · Live</div>
+        <div class="sum-val" id="totalValue">₹0</div>
+        <div class="sum-chg" id="totalChange"></div>
+        <div class="sum-sub" id="totalSub"></div>
+      </div>
+
+      <div class="sum-card">
+        <div class="sum-lbl">Today</div>
+        <div class="sum-val small" id="dayChange">—</div>
+        <div class="sum-chg" id="dayChangePct"></div>
+      </div>
+
+      <div class="sum-card">
+        <div class="sum-lbl">Since statement</div>
+        <div class="sum-val small" id="periodGain">—</div>
+        <div class="sum-chg" id="periodGainPct"></div>
+      </div>
+
+    </div>
+
+    <!-- Allocation grid -->
+    <div class="alloc-grid">
+
+      <div class="alloc-card">
+        <div class="alloc-title">
+          Asset allocation
+          <span class="alloc-title-pill">by category</span>
+        </div>
+        <div id="allocByCategory"></div>
+      </div>
+
+      <div class="alloc-card">
+        <div class="alloc-title">
+          By AMC
+          <span class="alloc-title-pill">top 6</span>
+        </div>
+        <div id="allocByAmc"></div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- OVERLAP SECTION (Day 10)                       -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="overlap-section" id="overlapSection" style="display:none;">
+
+      <div class="overlap-header">
+        <div>
+          <div class="overlap-title">Fund <em>overlap</em></div>
+        </div>
+        <div class="overlap-sub" id="overlapAsOf">Holdings as of —</div>
+      </div>
+
+      <!-- Headline summary -->
+      <div class="overlap-headline" id="overlapHeadline">
+        <div class="oh-stat-row">
+          <div class="oh-stat">
+            <div class="oh-stat-num" id="ohUnique">—</div>
+            <div class="oh-stat-lbl">Unique stocks</div>
+          </div>
+          <div class="oh-stat">
+            <div class="oh-stat-num" id="ohEffective">—</div>
+            <div class="oh-stat-lbl">Effective stocks</div>
+          </div>
+          <div class="oh-stat">
+            <div class="oh-stat-num" id="ohTop10">—</div>
+            <div class="oh-stat-lbl">Top 10 concentration</div>
+          </div>
+          <div class="oh-stat">
+            <div class="oh-stat-num" id="ohDup">—</div>
+            <div class="oh-stat-lbl">Stocks in 2+ funds</div>
+          </div>
+        </div>
+        <div class="oh-message" id="ohMessage">—</div>
+      </div>
+
+      <!-- Two-column: top overlaps + pairwise matrix -->
+      <div class="overlap-grid">
+
+        <!-- Top overlaps -->
+        <div class="over-card">
+          <div class="over-title">
+            Most-overlapping stocks
+            <span class="over-pill" id="overlapStockPill">0 stocks</span>
+          </div>
+          <div class="over-sub">Held by 2+ of your funds, ranked by total portfolio weight</div>
+          <div id="topOverlapsList"></div>
+        </div>
+
+        <!-- Pairwise matrix -->
+        <div class="matrix-card">
+          <div class="over-title">
+            Fund-pair overlap
+            <span class="over-pill">Heatmap</span>
+          </div>
+          <div class="over-sub">% of two funds' top holdings that overlap by weight</div>
+          <div class="matrix-wrap">
+            <table class="matrix-table" id="overlapMatrix"></table>
+          </div>
+          <div class="matrix-legend">
+            <span>Low</span>
+            <div class="matrix-legend-bar"></div>
+            <span>High overlap</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sector exposure -->
+      <div class="sector-card" id="sectorCard" style="display:none;">
+        <div class="over-title">
+          Sector exposure (via fund holdings)
+          <span class="over-pill" id="sectorPill">—</span>
+        </div>
+        <div class="over-sub" style="margin-bottom:0.85rem;">Aggregated from disclosed stock holdings across your funds</div>
+        <div id="sectorList"></div>
+      </div>
+
+      <!-- Top stocks across portfolio (look-through view) -->
+      <div class="topstocks-card" id="topStocksCard" style="display:none;">
+        <div class="over-title">
+          Your top holdings <em style="color:var(--gold);font-style:italic;font-weight:400;">across all funds</em>
+          <span class="over-pill" id="topStocksPill">—</span>
+        </div>
+        <div class="ts-intro" id="topStocksIntro">
+          You may hold the same stock across multiple mutual funds without realising it. <strong>This is the look-through view</strong> — every stock weighted by how much of your total portfolio it represents.
+        </div>
+        <div id="topStocksList"></div>
+        <div class="ts-summary" id="topStocksSummary"></div>
+      </div>
+
+      <!-- Overlap warnings -->
+      <div id="overlapWarnings" class="olap-warnings"></div>
+
+      <!-- Excluded schemes (Day 12) -->
+      <div class="excluded-card" id="excludedCard" style="display:none;">
+        <div class="excluded-title">
+          <span class="excluded-title-dot"></span>
+          Schemes not included in overlap analysis
+        </div>
+        <div class="excluded-list" id="excludedList"></div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- TAX INTELLIGENCE SECTION (Day 16)              -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="tax-section" id="taxSection" style="display:none;">
+
+      <div class="tax-header">
+        <div>
+          <div class="tax-title">Tax <em>intelligence</em></div>
+        </div>
+        <div class="tax-sub" style="display:flex;align-items:center;gap:1rem;">
+          <a href="artha-tax-simulator.html" style="font-size:0.74rem;color:var(--gold-mid);text-decoration:none;border:1px solid rgba(201,149,46,0.3);padding:0.38rem 0.85rem;border-radius:100px;letter-spacing:0.5px;font-family:var(--fb);transition:all 0.2s;">Run a scenario →</a>
+          <span id="taxFy">FY 2025-26</span>
+        </div>
+      </div>
+
+      <!-- Disclaimer banner — always visible above any number -->
+      <div class="tax-disclaimer">
+        <div class="tax-disc-icon">i</div>
+        <div class="tax-disc-body">
+          <strong>This is informational, not tax advice.</strong> CAS files give us closing snapshots only — no purchase dates or transaction history. All gains and harvesting estimates are approximations. Verify with a qualified CA before any tax action.
+        </div>
+      </div>
+
+      <!-- Hero stat strip -->
+      <div class="tax-hero" id="taxHero">
+        <div class="tax-hero-row">
+          <div>
+            <div class="tax-stat-lbl">Approximate gain since CAS</div>
+            <div class="tax-stat-num" id="taxGain">—</div>
+            <div class="tax-stat-sub" id="taxGainHorizon">—</div>
+          </div>
+          <div>
+            <div class="tax-stat-lbl">LTCG harvestable</div>
+            <div class="tax-stat-num" id="taxHarvestable">—</div>
+            <div class="tax-stat-sub" id="taxHarvestSub">FY 2025-26 limit Rs.1,25,000</div>
+          </div>
+          <div>
+            <div class="tax-stat-lbl">Estimated tax saving</div>
+            <div class="tax-stat-num" id="taxSaving">—</div>
+            <div class="tax-stat-sub">at 12.5% LTCG rate</div>
+          </div>
+        </div>
+        <div class="tax-summary-line" id="taxSummary">—</div>
+      </div>
+
+      <!-- Insight cards — actionables, severity-sorted -->
+      <div class="tax-insights" id="taxInsights"></div>
+
+      <!-- Hybrid review panel (Day 16.5 review fix) -->
+      <div class="tax-review-card" id="taxReviewCard" style="display:none;">
+        <div class="tax-review-title">Hybrid schemes — manual verification needed</div>
+        <div class="tax-review-sub">These hybrid schemes are excluded from harvesting estimates because we can't auto-determine equity allocation. Check each scheme's factsheet to see if equity allocation is ≥65% (then equity-taxed) or below (non-equity).</div>
+        <div class="tax-review-list" id="taxReviewList"></div>
+      </div>
+
+      <!-- Detail breakdowns: IDCW + ELSS holdings -->
+      <div class="tax-details">
+
+        <div class="tax-detail-card">
+          <div class="tax-detail-title">
+            IDCW / Dividend schemes
+            <span class="tax-insight-pill" id="taxIdcwPill">—</span>
+          </div>
+          <div class="tax-detail-sub">Distributions are taxed at slab rate</div>
+          <div class="tax-detail-list" id="taxIdcwList"></div>
+        </div>
+
+        <div class="tax-detail-card">
+          <div class="tax-detail-title">
+            ELSS holdings · 80C
+            <span class="tax-insight-pill" id="taxElssPill">—</span>
+          </div>
+          <div class="tax-detail-sub">3-year lock-in · Rs.1.5L annual limit (old regime)</div>
+          <div class="tax-detail-list" id="taxElssList"></div>
+        </div>
+
+      </div>
+
+      <!-- Caveats panel — secondary, smaller -->
+      <div class="tax-caveats" id="taxCaveats" style="display:none;">
+        <div class="tax-caveats-title">Important caveats — read before acting</div>
+        <ul id="taxCaveatsList"></ul>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- FUND SCORES SECTION (Day 19)                    -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="fs-section" id="fsSection" style="display:none;">
+
+      <div class="fs-header">
+        <div>
+          <div class="fs-title">Fund <em>quality scores</em></div>
+        </div>
+        <div class="fs-sub" id="fsCount">— funds scored</div>
+      </div>
+
+      <div class="fs-tier-banner">
+        <strong>7 dimensions measured.</strong> Cost, risk-adjusted return, drawdown discipline, concentration fitness, fund size health, manager stability, and track record. Some metrics (portfolio turnover, alpha vs benchmark, beta) remain pending — see disclaimers below.
+      </div>
+
+      <div class="fs-grid" id="fsGrid"></div>
+
+    </div>
+
+    <!-- Holdings table -->
+    <div class="holdings-card">
+      <div class="holdings-title">
+        All holdings
+        <span class="holdings-meta" id="holdingsMeta"></span>
+      </div>
+      <div class="h-table-wrap">
+        <table class="h-table">
+          <thead>
+            <tr>
+              <th>Scheme</th>
+              <th>Category</th>
+              <th class="num">Units</th>
+              <th class="num">NAV</th>
+              <th class="num">Value</th>
+              <th class="num">Day</th>
+              <th class="num">Since CAS</th>
+            </tr>
+          </thead>
+          <tbody id="holdingsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Warnings -->
+    <div class="warnings-card" id="warningsCard" style="display:none;">
+      <div class="warnings-title">Notes from the engine</div>
+      <ul class="warnings-list" id="warningsList"></ul>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════
+
+// Set this to your Railway URL once Day 5 lands.
+// Leave empty to use offline / sample-portfolio mode for now.
+var API_BASE = window.ARTHA_API_BASE || 'https://web-production-c3545.up.railway.app';
+
+var STORAGE_KEY = "artha_portfolio_v1";  // localStorage cache key
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+
+var state = {
+  selectedFile: null,
+  portfolioData: null,
+};
+
+// ════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════
+
+function fmtINR(n){
+  if(!n && n !== 0) return '—';
+  var sign = n < 0 ? '-' : '';
+  n = Math.abs(n);
+  if(n >= 1e7) return sign + '₹' + (n/1e7).toFixed(2) + ' Cr';
+  if(n >= 1e5) return sign + '₹' + (n/1e5).toFixed(2) + ' L';
+  return sign + '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+function fmtFull(n){
+  if(!n && n !== 0) return '—';
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+function fmtPct(n){
+  if(!n && n !== 0) return '—';
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+}
+
+function categoryClass(cat){
+  cat = (cat || '').toLowerCase();
+  if(cat === 'equity') return 'h-cat equity';
+  if(cat === 'debt') return 'h-cat debt';
+  if(cat === 'hybrid') return 'h-cat hybrid';
+  if(cat === 'liquid') return 'h-cat liquid';
+  return 'h-cat';
+}
+
+// ════════════════════════════════════════════════════
+// PASTE-TEXT FALLBACK (Day 6 — for unusual CAS layouts)
+// ════════════════════════════════════════════════════
+
+function togglePasteFallback(){
+  var el = document.getElementById('pasteFallback');
+  var btn = document.getElementById('pasteToggleBtn');
+  if(el.style.display === 'none' || !el.style.display){
+    el.style.display = 'block';
+    if(btn) btn.style.display = 'none';
+    setTimeout(function(){
+      document.getElementById('pasteInput').focus();
+    }, 50);
+  } else {
+    el.style.display = 'none';
+    if(btn) btn.style.display = 'inline-block';
+  }
+}
+
+function handlePasteParse(){
+  var text = document.getElementById('pasteInput').value.trim();
+  if(text.length < 200){
+    showError('Not enough text', 'The pasted text is too short to be a CAS. Make sure you copied everything from the opened PDF.');
+    return;
+  }
+
+  hideError();
+  showLoading();
+  updateLoadingProgress('Parsing pasted text...');
+
+  if(!API_BASE){
+    setTimeout(function(){
+      hideLoading();
+      showError(
+        'Backend not yet configured',
+        'The paste-text endpoint will activate once the backend is wired up. Use "Or see a sample" to explore the dashboard for now.'
+      );
+    }, 1000);
+    return;
+  }
+
+  fetch(API_BASE + '/api/portfolio/upload-text', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ text: text })
+  })
+  .then(function(r){
+    if(!r.ok){
+      return r.json().then(function(j){
+        throw new Error(j.detail || ('HTTP ' + r.status));
+      }).catch(function(){
+        throw new Error('Server returned ' + r.status);
+      });
+    }
+    return r.json();
+  })
+  .then(function(data){
+    hideLoading();
+    state.portfolioData = data;
+    cachePortfolio(data);
+    renderPortfolio(data);
+  })
+  .catch(function(err){
+    hideLoading();
+    var msg = err.message || 'Unknown error';
+    showError('Couldn\'t parse the pasted text', msg + '. If this is a real CAS that we should support, please share a screenshot of the first page so we can add parsing for that layout.');
+  });
+}
+
+// ════════════════════════════════════════════════════
+// FILE INPUT WIRING
+// ════════════════════════════════════════════════════
+
+(function setupFileInput(){
+  var fileInput = document.getElementById('fileInput');
+  var dropZone = document.getElementById('dropZone');
+  var pwdInput = document.getElementById('pwdInput');
+  var consentBox = document.getElementById('consentBox');
+  var parseBtn = document.getElementById('parseBtn');
+
+  function checkReady(){
+    parseBtn.disabled = !(state.selectedFile && pwdInput.value && consentBox.checked);
+  }
+
+  fileInput.addEventListener('change', function(e){
+    if(e.target.files && e.target.files[0]){
+      handleFileSelect(e.target.files[0]);
+    }
+  });
+
+  ['dragenter', 'dragover'].forEach(function(ev){
+    dropZone.addEventListener(ev, function(e){
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(function(ev){
+    dropZone.addEventListener(ev, function(e){
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+    });
+  });
+
+  dropZone.addEventListener('drop', function(e){
+    if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]){
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  });
+
+  pwdInput.addEventListener('input', checkReady);
+  consentBox.addEventListener('change', checkReady);
+
+  function handleFileSelect(file){
+    if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
+      showError('Wrong file type', 'Please upload a PDF file. CAS statements from CAMS and KFin are always PDFs.');
+      return;
+    }
+    if(file.size > 10 * 1024 * 1024){
+      showError('File too large', 'Please upload a CAS file under 10 MB. If your CAS is unusually large, contact us.');
+      return;
+    }
+    state.selectedFile = file;
+    document.getElementById('dropZone').classList.add('has-file');
+    document.getElementById('dzIcon').textContent = '✓';
+    document.getElementById('dzText').textContent = file.name;
+    document.getElementById('dzSub').textContent = (file.size/1024).toFixed(0) + ' KB · ready to parse';
+    hideError();
+    checkReady();
+  }
+
+  // Expose for handleParse closure
+  window._checkReady = checkReady;
+})();
+
+// ════════════════════════════════════════════════════
+// PARSE FLOW
+// ════════════════════════════════════════════════════
+
+function handleParse(){
+  if(!state.selectedFile){
+    showError('No file selected', 'Please choose your CAS PDF first.');
+    return;
+  }
+  var pwd = document.getElementById('pwdInput').value;
+  if(!pwd){
+    showError('Password required', 'Your CAS PDF is encrypted. Enter the password CAMS or KFin emailed you.');
+    return;
+  }
+
+  hideError();
+  showLoading();
+
+  if(!API_BASE){
+    // No backend yet (Day 5 will wire this up). Show a friendly explanation.
+    setTimeout(function(){
+      hideLoading();
+      showError(
+        'Backend not yet configured',
+        'The portfolio engine API is being wired up (Day 5 build). Click "Or see a sample" below the parse button to view a demo portfolio in the meantime.'
+      );
+    }, 1200);
+    return;
+  }
+
+  // Real backend call — Day 5+ will set API_BASE
+  var formData = new FormData();
+  formData.append('file', state.selectedFile);
+  formData.append('password', pwd);
+
+  updateLoadingProgress('Decrypting PDF...');
+  setTimeout(function(){updateLoadingProgress('Parsing folios...');}, 1500);
+  setTimeout(function(){updateLoadingProgress('Fetching live NAVs...');}, 3500);
+
+  fetch(API_BASE + '/api/portfolio/upload', {
+    method: 'POST',
+    body: formData
+  })
+  .then(function(r){
+    if(!r.ok){
+      return r.json().then(function(j){
+        throw new Error(j.detail || ('HTTP ' + r.status));
+      }).catch(function(){
+        throw new Error('Server returned ' + r.status);
+      });
+    }
+    return r.json();
+  })
+  .then(function(data){
+    hideLoading();
+    state.portfolioData = data;
+    cachePortfolio(data);
+    renderPortfolio(data);
+  })
+  .catch(function(err){
+    hideLoading();
+    var msg = err.message || 'Unknown error';
+    if(msg.toLowerCase().indexOf('password') !== -1){
+      showError('Wrong password', 'The PDF couldn\'t be decrypted. Try your PAN (first 5 chars) + DOB in DDMMYYYY format.');
+    } else if(msg.toLowerCase().indexOf('format') !== -1 || msg.indexOf('non-CAMS') !== -1 || msg.indexOf('non-KFin') !== -1){
+      showError('Format not recognized', 'This doesn\'t look like a standard CAMS or KFin CAS. If you\'re sure it is, send us a screenshot of the first page and we\'ll add support.');
+    } else {
+      showError('Couldn\'t parse your CAS', msg + '. Try refreshing, or use the sample portfolio to explore the dashboard.');
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+// UI STATE TRANSITIONS
+// ════════════════════════════════════════════════════
+
+function showLoading(){
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('loadingState').classList.add('active');
+  document.getElementById('portfolioView').classList.remove('active');
+}
+
+function hideLoading(){
+  document.getElementById('loadingState').classList.remove('active');
+}
+
+function updateLoadingProgress(msg){
+  var el = document.getElementById('loadingProgress');
+  if(el) el.textContent = msg;
+}
+
+function showError(title, msg){
+  document.getElementById('errorTitle').textContent = title;
+  document.getElementById('errorMsg').textContent = msg;
+  document.getElementById('errorState').classList.add('active');
+  // Make sure empty state is visible to host the error
+  document.getElementById('emptyState').style.display = 'grid';
+  document.getElementById('loadingState').classList.remove('active');
+}
+
+function hideError(){
+  document.getElementById('errorState').classList.remove('active');
+}
+
+function resetPortfolio(){
+  state.portfolioData = null;
+  state.selectedFile = null;
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  document.getElementById('portfolioView').classList.remove('active');
+  document.getElementById('emptyState').style.display = 'grid';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('pwdInput').value = '';
+  document.getElementById('consentBox').checked = false;
+  document.getElementById('dropZone').classList.remove('has-file');
+  document.getElementById('dzIcon').textContent = 'PDF';
+  document.getElementById('dzText').textContent = 'Drop your CAS here, or click to browse';
+  document.getElementById('dzSub').textContent = 'Encrypted PDF · Max 10 MB · CAMS / KFin format';
+  // Clear paste-fallback state too
+  var pi = document.getElementById('pasteInput'); if(pi) pi.value = '';
+  var pf = document.getElementById('pasteFallback'); if(pf) pf.style.display = 'none';
+  var pt = document.getElementById('pasteToggleBtn'); if(pt) pt.style.display = 'inline-block';
+  // Clear overlap section
+  var os = document.getElementById('overlapSection'); if(os) os.style.display = 'none';
+  // Clear tax section
+  var ts = document.getElementById('taxSection'); if(ts) ts.style.display = 'none';
+  // Clear fund scores section
+  var fs = document.getElementById('fsSection'); if(fs) fs.style.display = 'none';
+  // Clear top stocks card
+  var tsc = document.getElementById('topStocksCard'); if(tsc) tsc.style.display = 'none';
+  hideError();
+  if(window._checkReady) window._checkReady();
+}
+
+// ════════════════════════════════════════════════════
+// LOCALSTORAGE CACHE (review feedback from Day 2 plan)
+// ════════════════════════════════════════════════════
+
+function cachePortfolio(data){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      data: data,
+      cached_at: new Date().toISOString()
+    }));
+  }catch(e){
+    console.warn('Could not cache portfolio:', e);
+  }
+}
+
+function loadCachedPortfolio(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    var wrapper = JSON.parse(raw);
+    if(!wrapper || !wrapper.data) return false;
+    state.portfolioData = wrapper.data;
+    renderPortfolio(wrapper.data);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+// ════════════════════════════════════════════════════
+// SAMPLE PORTFOLIO (offline demo)
+// ════════════════════════════════════════════════════
+
+function loadSamplePortfolio(){
+  var sample = {
+    "as_of": new Date().toISOString(),
+    "data_freshness": {"cas_date":"31-Mar-2025","nav_date":"06-Jun-2026","stale_schemes":0},
+    "totals": {
+      "cas_value": 4382500.0, "current_value": 4827300.0,
+      "absolute_change": 444800.0, "percent_change": 10.15,
+      "day_change": 12450.0, "day_change_pct": 0.26
+    },
+    "allocation_by_category": {
+      "Equity":{"value":3200000,"percent":66.3,"scheme_count":7},
+      "Debt":{"value":980000,"percent":20.3,"scheme_count":3},
+      "Hybrid":{"value":420000,"percent":8.7,"scheme_count":1},
+      "Liquid":{"value":227300,"percent":4.7,"scheme_count":1}
+    },
+    "allocation_by_amc": {
+      "HDFC Mutual Fund":{"value":1850000,"percent":38.3,"scheme_count":4},
+      "Nippon India Mutual Fund":{"value":920000,"percent":19.1,"scheme_count":2},
+      "Axis Mutual Fund":{"value":680000,"percent":14.1,"scheme_count":2},
+      "ICICI Prudential Mutual Fund":{"value":620000,"percent":12.8,"scheme_count":2},
+      "Parag Parikh Mutual Fund":{"value":450000,"percent":9.3,"scheme_count":1},
+      "Mirae Asset Mutual Fund":{"value":307300,"percent":6.4,"scheme_count":1}
+    },
+    "schemes": [
+      {"isin":"INF179K01YV8","scheme_name":"HDFC Flexi Cap Fund - Regular - Growth","category":"Equity","amc":"HDFC Mutual Fund","folio":"12345678/0","units":2345.678,"cas_nav":1432.50,"cas_value":3360834,"current_nav":1518.40,"current_value":3561900,"day_change":7740,"absolute_gain":201066,"percent_gain":5.98,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF200K01AB2","scheme_name":"Parag Parikh Flexi Cap Fund - Direct - Growth","category":"Equity","amc":"Parag Parikh Mutual Fund","folio":"PPF9876","units":820.4,"cas_nav":520.10,"cas_value":426690,"current_nav":548.30,"current_value":449830,"day_change":1640,"absolute_gain":23140,"percent_gain":5.42,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF205K01CD3","scheme_name":"Axis Bluechip Fund - Direct - Growth","category":"Equity","amc":"Axis Mutual Fund","folio":"AX12345","units":3400,"cas_nav":52.80,"cas_value":179520,"current_nav":56.20,"current_value":191080,"day_change":340,"absolute_gain":11560,"percent_gain":6.44,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF769K01EF4","scheme_name":"Nippon India Small Cap Fund - Direct - Growth","category":"Equity","amc":"Nippon India Mutual Fund","folio":"NI98765","units":3100,"cas_nav":138.20,"cas_value":428420,"current_nav":151.30,"current_value":469030,"day_change":2480,"absolute_gain":40610,"percent_gain":9.48,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF109K01GH5","scheme_name":"ICICI Prudential Bluechip Fund - Direct - Growth","category":"Equity","amc":"ICICI Prudential Mutual Fund","folio":"IC11122","units":4200,"cas_nav":85.40,"cas_value":358680,"current_nav":88.10,"current_value":370020,"day_change":-840,"absolute_gain":11340,"percent_gain":3.16,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF769K01IJ6","scheme_name":"Mirae Asset Large & Midcap Fund - Direct - Growth","category":"Equity","amc":"Mirae Asset Mutual Fund","folio":"MA55432","units":2680,"cas_nav":105.80,"cas_value":283544,"current_nav":114.70,"current_value":307396,"day_change":1340,"absolute_gain":23852,"percent_gain":8.41,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF200K01KL7","scheme_name":"HDFC Balanced Advantage Fund - Direct - Growth","category":"Hybrid","amc":"HDFC Mutual Fund","folio":"12345678/0","units":11500,"cas_nav":34.20,"cas_value":393300,"current_nav":36.55,"current_value":420325,"day_change":805,"absolute_gain":27025,"percent_gain":6.87,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF179K01MN8","scheme_name":"HDFC Corporate Bond Fund - Direct - Growth","category":"Debt","amc":"HDFC Mutual Fund","folio":"12345678/0","units":15400,"cas_nav":28.80,"cas_value":443520,"current_nav":29.45,"current_value":453530,"day_change":231,"absolute_gain":10010,"percent_gain":2.26,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF205K01OP9","scheme_name":"Axis Short Term Debt Fund - Direct - Growth","category":"Debt","amc":"Axis Mutual Fund","folio":"AX12345","units":8200,"cas_nav":29.40,"cas_value":241080,"current_nav":29.85,"current_value":244770,"day_change":82,"absolute_gain":3690,"percent_gain":1.53,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF109K01QR1","scheme_name":"ICICI Prudential Short Term Fund - Direct - Growth","category":"Debt","amc":"ICICI Prudential Mutual Fund","folio":"IC11122","units":7900,"cas_nav":33.10,"cas_value":261490,"current_nav":33.55,"current_value":265045,"day_change":237,"absolute_gain":3555,"percent_gain":1.36,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF179K01ST2","scheme_name":"HDFC Liquid Fund - Direct - Growth","category":"Liquid","amc":"HDFC Mutual Fund","folio":"12345678/0","units":45.6,"cas_nav":4920.50,"cas_value":224407,"current_nav":4985.30,"current_value":227329,"day_change":160,"absolute_gain":2922,"percent_gain":1.30,"nav_as_of":"06-Jun-2026"},
+      {"isin":"INF769K01UV3","scheme_name":"Nippon India Growth Fund - Direct - Growth","category":"Equity","amc":"Nippon India Mutual Fund","folio":"NI98765","units":1820,"cas_nav":280.40,"cas_value":510328,"current_nav":295.60,"current_value":537992,"day_change":1456,"absolute_gain":27664,"percent_gain":5.42,"nav_as_of":"06-Jun-2026"}
+    ],
+    "warnings": [
+      "This is sample data for product preview. Upload your real CAS to see your own portfolio.",
+      "XIRR not computed: CAS provides closing snapshots only, no transaction history."
+    ],
+    "overlap_data": {
+      "total_schemes": 12,
+      "funds_analyzed": 9,
+      "funds_unavailable": 3,
+      "total_portfolio_value": 4827300.0,
+      "total_unique_stocks": 84,
+      "effective_stocks": 38.4,
+      "concentration_ratio": 54.3,
+      "top_10_concentration_pct": 32.8,
+      "stocks_held_in_multiple_funds": 23,
+      "holdings_as_of": "31-May-2026",
+      "summary_message": "You hold 84 unique stocks across 9 funds, but effective diversification is 38 stocks — moderately concentrated. Top 10 names are 32.8% of portfolio.",
+      "top_overlaps": [
+        {"stock_name":"ICICI Bank","isin":"INE090A01021","sector":"Banks","fund_count":5,"total_portfolio_weight":6.82,"average_weight_in_funds":7.4},
+        {"stock_name":"HDFC Bank","isin":"INE040A01034","sector":"Banks","fund_count":5,"total_portfolio_weight":5.91,"average_weight_in_funds":6.5},
+        {"stock_name":"Reliance Industries","isin":"INE002A01018","sector":"Energy","fund_count":4,"total_portfolio_weight":5.12,"average_weight_in_funds":6.8},
+        {"stock_name":"Infosys","isin":"INE009A01021","sector":"IT","fund_count":4,"total_portfolio_weight":3.84,"average_weight_in_funds":5.3},
+        {"stock_name":"Bharti Airtel","isin":"INE397D01024","sector":"Telecom","fund_count":3,"total_portfolio_weight":2.91,"average_weight_in_funds":4.2},
+        {"stock_name":"TCS","isin":"INE467B01029","sector":"IT","fund_count":3,"total_portfolio_weight":2.74,"average_weight_in_funds":3.9},
+        {"stock_name":"Larsen & Toubro","isin":"INE018A01030","sector":"Engineering","fund_count":3,"total_portfolio_weight":2.31,"average_weight_in_funds":3.5},
+        {"stock_name":"Axis Bank","isin":"INE238A01034","sector":"Banks","fund_count":3,"total_portfolio_weight":2.05,"average_weight_in_funds":3.0},
+        {"stock_name":"Kotak Mahindra Bank","isin":"INE237A01028","sector":"Banks","fund_count":2,"total_portfolio_weight":1.84,"average_weight_in_funds":4.1},
+        {"stock_name":"Maruti Suzuki","isin":"INE585B01010","sector":"Auto","fund_count":2,"total_portfolio_weight":1.62,"average_weight_in_funds":3.6}
+      ],
+      "pairwise_overlaps": [
+        {"isin_a":"INF179K01YV8","scheme_name_a":"HDFC Flexi Cap","isin_b":"INF109K01GH5","scheme_name_b":"ICICI Pru Bluechip","overlap_pct":68.4,"shared_stock_count":18},
+        {"isin_a":"INF179K01YV8","scheme_name_a":"HDFC Flexi Cap","isin_b":"INF205K01CD3","scheme_name_b":"Axis Bluechip","overlap_pct":54.2,"shared_stock_count":15},
+        {"isin_a":"INF109K01GH5","scheme_name_a":"ICICI Pru Bluechip","isin_b":"INF205K01CD3","scheme_name_b":"Axis Bluechip","overlap_pct":48.7,"shared_stock_count":14},
+        {"isin_a":"INF179K01YV8","scheme_name_a":"HDFC Flexi Cap","isin_b":"INF769K01IJ6","scheme_name_b":"Mirae Large Midcap","overlap_pct":31.5,"shared_stock_count":11},
+        {"isin_a":"INF205K01CD3","scheme_name_a":"Axis Bluechip","isin_b":"INF769K01IJ6","scheme_name_b":"Mirae Large Midcap","overlap_pct":27.3,"shared_stock_count":9},
+        {"isin_a":"INF200K01AB2","scheme_name_a":"Parag Parikh Flexi","isin_b":"INF179K01YV8","scheme_name_b":"HDFC Flexi Cap","overlap_pct":18.2,"shared_stock_count":6},
+        {"isin_a":"INF200K01AB2","scheme_name_a":"Parag Parikh Flexi","isin_b":"INF109K01GH5","scheme_name_b":"ICICI Pru Bluechip","overlap_pct":14.8,"shared_stock_count":5},
+        {"isin_a":"INF769K01EF4","scheme_name_a":"Nippon Small Cap","isin_b":"INF769K01IJ6","scheme_name_b":"Mirae Large Midcap","overlap_pct":8.4,"shared_stock_count":4},
+        {"isin_a":"INF200K01AB2","scheme_name_a":"Parag Parikh Flexi","isin_b":"INF205K01CD3","scheme_name_b":"Axis Bluechip","overlap_pct":7.5,"shared_stock_count":3},
+        {"isin_a":"INF769K01EF4","scheme_name_a":"Nippon Small Cap","isin_b":"INF179K01YV8","scheme_name_b":"HDFC Flexi Cap","overlap_pct":3.2,"shared_stock_count":2}
+      ],
+      "sector_exposure": [
+        {"sector":"Banks","portfolio_pct":17.62,"stock_count":6},
+        {"sector":"IT","portfolio_pct":10.45,"stock_count":4},
+        {"sector":"Energy","portfolio_pct":6.34,"stock_count":2},
+        {"sector":"Auto","portfolio_pct":4.12,"stock_count":3},
+        {"sector":"FMCG","portfolio_pct":3.78,"stock_count":3},
+        {"sector":"Engineering","portfolio_pct":3.21,"stock_count":2},
+        {"sector":"Telecom","portfolio_pct":2.91,"stock_count":1},
+        {"sector":"Pharma","portfolio_pct":2.65,"stock_count":2},
+        {"sector":"Finance","portfolio_pct":2.43,"stock_count":2},
+        {"sector":"Materials","portfolio_pct":1.89,"stock_count":2}
+      ],
+      "warnings": [
+        {"type":"high_fund_pair_overlap","severity":"high","fund_a":"HDFC Flexi Cap","fund_b":"ICICI Pru Bluechip","overlap_pct":68.4,"shared_stocks":18,"message":"HDFC Flexi Cap and ICICI Pru Bluechip have 68% portfolio overlap (18 shared stocks). Holding both gives you almost no diversification benefit — consider keeping one."},
+        {"type":"single_stock_concentration","severity":"medium","stock_name":"ICICI Bank","portfolio_pct":6.82,"fund_count":5,"message":"ICICI Bank is 6.82% of your portfolio across 5 funds. That's significant single-stock exposure — verify this matches your conviction."},
+        {"type":"single_stock_concentration","severity":"medium","stock_name":"HDFC Bank","portfolio_pct":5.91,"fund_count":5,"message":"HDFC Bank is 5.91% of your portfolio across 5 funds. That's significant single-stock exposure — verify this matches your conviction."},
+        {"type":"high_fund_pair_overlap","severity":"medium","fund_a":"HDFC Flexi Cap","fund_b":"Axis Bluechip","overlap_pct":54.2,"shared_stocks":15,"message":"HDFC Flexi Cap and Axis Bluechip have 54% portfolio overlap (15 shared stocks). Holding both gives you almost no diversification benefit — consider keeping one."},
+        {"type":"multi_fund_duplication","severity":"medium","stock_name":"Reliance Industries","fund_count":4,"portfolio_pct":5.12,"average_weight_in_funds":6.8,"message":"Reliance Industries appears in 4 of your 9 funds. Each fund holds it at ~6.8%, totalling 5.12% of your portfolio. You're paying expense ratios on multiple funds to hold the same name."}
+      ],
+      "excluded_by_type": [
+        {"isin":"INF179K01MN8","scheme_name":"HDFC Corporate Bond Fund - Direct - Growth","scheme_type":"Debt","reason":"Debt fund — holds bonds, not stocks; not applicable for equity overlap"},
+        {"isin":"INF205K01OP9","scheme_name":"Axis Short Term Debt Fund - Direct - Growth","scheme_type":"Debt","reason":"Debt fund — holds bonds, not stocks; not applicable for equity overlap"},
+        {"isin":"INF179K01ST2","scheme_name":"HDFC Liquid Fund - Direct - Growth","scheme_type":"Debt","reason":"Debt fund — holds bonds, not stocks; not applicable for equity overlap"}
+      ],
+      "fetch_failed": []
+    },
+    "tax_data": {
+      "fy": "2025-26",
+      "as_of": "2026-06-08T00:00:00Z",
+      "exemption_status": {
+        "annual_limit": 125000,
+        "ltcg_equity_exemption_remaining": 125000,
+        "note": "The Rs.1,25,000 LTCG exemption for FY2025-26 is shown as fully available — but we cannot verify how much you've already used this year from a CAS snapshot."
+      },
+      "approximate_gains": {
+        "equity_gain_since_cas": 397842,
+        "equity_value_current": 4170470,
+        "non_equity_gain_since_cas": 16487,
+        "non_equity_value_current": 945874,
+        "ambiguous_value_current": 420325,
+        "schemes_needing_review": [
+          {"scheme_name":"HDFC Balanced Hybrid Fund - Direct - Growth","isin":"INF200K01KL7","category":"Hybrid","current_value":420325,"approximate_gain":27025,"reason":"Hybrid scheme — taxation depends on equity allocation. If actual equity allocation is ≥65% (Aggressive Hybrid/BAF/Arbitrage), it's equity-taxed at 12.5% LTCG / 20% STCG. Otherwise non-equity. Check the scheme's latest factsheet or SID."}
+        ],
+        "cas_date": "31-Mar-2025",
+        "approximate_horizon_months": 14.3,
+        "note": "Gains shown are between your CAS snapshot date and today's NAV — NOT between your actual purchase date and today."
+      },
+      "harvesting_opportunity": {
+        "found": true,
+        "estimated_harvestable": 125000,
+        "estimated_tax_saved_if_unrealised": 15625,
+        "annual_exemption": 125000,
+        "ltcg_rate": 0.125,
+        "message": "Your equity holdings have appreciated by approximately Rs.397,842 since the CAS snapshot. If positions are truly long-term (>12 months held) and you haven't used your Rs.1,25,000 LTCG exemption in FY2025-26, you could harvest up to Rs.1,25,000 tax-free by selling and immediately rebuying. Estimated tax saved: Rs.15,625. VERIFY HOLDING PERIOD AND PRIOR REALISATIONS WITH YOUR CA before acting.",
+        "caveats": [
+          "True holding period requires purchase-date data we don't have",
+          "We cannot verify how much of the Rs.1.25L exemption you've already used this FY",
+          "Same-day rebuy is permitted for MFs (unlike US wash-sale rules) but verify with CA",
+          "Selling triggers STT, exit loads, and may create a TDS event for some structures"
+        ]
+      },
+      "idcw_detection": {
+        "idcw_schemes": [],
+        "growth_schemes_count": 11,
+        "message": "All your schemes appear to be Growth (or unmarked) variants — tax-efficient for accumulation. Good."
+      },
+      "elss_holdings": {
+        "schemes": [],
+        "total_value": 0,
+        "lock_in_message": "No ELSS schemes in your portfolio. If you file under the old tax regime and haven't maxed Rs.1,50,000 of 80C through other instruments (PPF, EPF, life insurance, principal repayment), ELSS is the highest-return 80C option with the shortest lock-in.",
+        "section_80c_limit": 150000
+      },
+      "regime_hint": {
+        "elss_present": false,
+        "elss_value": 0,
+        "new_regime_basic_exemption": 400000,
+        "section_80c_limit": 150000,
+        "message": "No ELSS detected. If you don't have significant 80C deductions elsewhere (PPF, EPF, principal repayment, life insurance), the NEW regime is likely better given its higher base exemption (Rs.4,00,000 for FY2025-26)."
+      },
+      "insights": [
+        {"severity": "high", "category": "review", "title": "Hybrid scheme needs tax-treatment review", "message": "You hold 1 hybrid scheme (HDFC Balanced Hybrid Fund - Direct - Growth). Hybrid funds are equity-taxed (12.5% LTCG / 20% STCG) only if the scheme maintains ≥65% equity allocation — typically Aggressive Hybrid, BAF, Equity Savings, Arbitrage. Conservative hybrids are taxed as non-equity. We've EXCLUDED these from harvesting estimates to avoid inflating numbers. Check each scheme's factsheet, then re-estimate with your CA."},
+        {"severity": "high", "category": "harvest", "title": "LTCG harvesting opportunity", "message": "Your equity holdings have appreciated by approximately Rs.397,842 since the CAS snapshot. If positions are truly long-term (>12 months held) and you haven't used your Rs.1,25,000 LTCG exemption in FY2025-26, you could harvest up to Rs.1,25,000 tax-free by selling and immediately rebuying. Estimated tax saved: Rs.15,625. VERIFY HOLDING PERIOD AND PRIOR REALISATIONS WITH YOUR CA before acting.", "estimated_value": 15625},
+        {"severity": "low", "category": "regime", "title": "Old vs New tax regime", "message": "No ELSS detected. If you don't have significant 80C deductions elsewhere (PPF, EPF, principal repayment, life insurance), the NEW regime is likely better given its higher base exemption (Rs.4,00,000 for FY2025-26)."}
+      ],
+      "summary_message": "1 hybrid scheme flagged for review · ~Rs.397,842 approximate equity gain since CAS · Rs.15,625 potential tax saving via LTCG harvest",
+      "disclaimers": [
+        "This is informational, not tax advice. Verify with a qualified CA before any tax action.",
+        "All computations use FY 2025-26 tax rates (LTCG 12.5%, STCG 20%, exemption Rs.1.25L).",
+        "Gains shown are approximations based on CAS snapshot vs current NAV — actual tax liability requires transaction history we don't have."
+      ]
+    },
+    "fund_scores_data": {
+      "as_of": "2026-06-08T00:00:00Z",
+      "fund_count": 4,
+      "funds": [
+        {
+          "isin":"INF179K01YV8","scheme_name":"HDFC Flexi Cap Fund - Regular - Growth",
+          "category":"Equity","scheme_type":"Equity","current_value":3561900,
+          "overall_verdict":"Excellent track record and cost, but below-peer category-fit concentration.",
+          "confidence_overall":"high",
+          "nav_history_length_days":1825,
+          "scores":{
+            "expense_efficiency":{"score":73.3,"raw_value":0.85,"raw_unit":"%","category_context":"vs category median 1.05% — meaningfully cheaper than peers","confidence":"high","data_not_available":false},
+            "risk_adjusted_return":{"score":68.2,"raw_value":0.96,"raw_unit":"Sharpe ratio","category_context":"15.2% return at 16.1% volatility over 3.0y → Sharpe 0.96","confidence":"high","data_not_available":false},
+            "drawdown_discipline":{"score":77.7,"raw_value":29.2,"raw_unit":"%","category_context":"29.2% peak-to-trough vs ~35% category-normal","confidence":"high","data_not_available":false},
+            "concentration_fitness":{"score":40.0,"raw_value":12.5,"raw_unit":"effective stocks","category_context":"~13 effective stocks (HHI-inverse) vs 20-50 ideal for equity","confidence":"medium","data_not_available":false},
+            "fund_size_health":{"score":95.1,"raw_value":8500,"raw_unit":"Cr","category_context":"Rs.8,500 Cr — within Rs.200-40,000 Cr healthy band","confidence":"high","data_not_available":false},
+            "manager_stability":{"score":96.0,"raw_value":4.2,"raw_unit":"years","category_context":"Roshi Jain — 4.2 years tenure","confidence":"high","data_not_available":false},
+            "track_record_length":{"score":100,"raw_value":5.0,"raw_unit":"years","category_context":"5.0 years of NAV data available","confidence":"high","data_not_available":false}
+          },
+          "flags":[]
+        },
+        {
+          "isin":"INF769K01EF4","scheme_name":"Nippon India Small Cap Fund - Direct - Growth",
+          "category":"Equity","scheme_type":"Equity","current_value":469030,
+          "overall_verdict":"Excellent risk-adjusted return, but weak drawdown discipline. Flags present.",
+          "confidence_overall":"high",
+          "nav_history_length_days":1825,
+          "scores":{
+            "expense_efficiency":{"score":56.7,"raw_value":1.18,"raw_unit":"%","category_context":"vs category median 1.05% — close to peer median","confidence":"high","data_not_available":false},
+            "risk_adjusted_return":{"score":81.5,"raw_value":1.38,"raw_unit":"Sharpe ratio","category_context":"22.1% return at 21.5% volatility over 3.0y → Sharpe 1.38","confidence":"high","data_not_available":false},
+            "drawdown_discipline":{"score":15.0,"raw_value":52.4,"raw_unit":"%","category_context":"52.4% peak-to-trough vs ~35% category-normal","confidence":"high","data_not_available":false},
+            "concentration_fitness":{"score":82.3,"raw_value":42.0,"raw_unit":"effective stocks","category_context":"~42 effective stocks (HHI-inverse) vs 20-50 ideal for equity","confidence":"medium","data_not_available":false},
+            "fund_size_health":{"score":67.4,"raw_value":62000,"raw_unit":"Cr","category_context":"Rs.62,000 Cr — above Rs.40,000 Cr capacity threshold; may struggle to outperform","confidence":"high","data_not_available":false},
+            "manager_stability":{"score":78.0,"raw_value":2.6,"raw_unit":"years","category_context":"Samir Rachh — 2.6 years tenure","confidence":"medium","data_not_available":false},
+            "track_record_length":{"score":100,"raw_value":5.0,"raw_unit":"years","category_context":"5.0 years of NAV data available","confidence":"high","data_not_available":false}
+          },
+          "flags":[
+            {"severity":"medium","type":"recent_drawdown","message":"Down 18.4% from 3-month peak — meaningful drawdown in recent history."}
+          ]
+        },
+        {
+          "isin":"INF200K01AB2","scheme_name":"Parag Parikh Flexi Cap Fund - Direct - Growth",
+          "category":"Equity","scheme_type":"Equity","current_value":449830,
+          "overall_verdict":"Excellent cost and risk-adjusted return.",
+          "confidence_overall":"high",
+          "nav_history_length_days":1825,
+          "scores":{
+            "expense_efficiency":{"score":83.3,"raw_value":0.70,"raw_unit":"%","category_context":"vs category median 1.05% — meaningfully cheaper than peers","confidence":"high","data_not_available":false},
+            "risk_adjusted_return":{"score":74.8,"raw_value":1.12,"raw_unit":"Sharpe ratio","category_context":"17.8% return at 15.4% volatility over 3.0y → Sharpe 1.12","confidence":"high","data_not_available":false},
+            "drawdown_discipline":{"score":71.4,"raw_value":31.5,"raw_unit":"%","category_context":"31.5% peak-to-trough vs ~35% category-normal","confidence":"high","data_not_available":false},
+            "concentration_fitness":{"score":68.0,"raw_value":28.0,"raw_unit":"effective stocks","category_context":"~28 effective stocks (HHI-inverse) vs 20-50 ideal for equity","confidence":"medium","data_not_available":false},
+            "fund_size_health":{"score":18.8,"raw_value":95000,"raw_unit":"Cr","category_context":"Rs.95,000 Cr — above Rs.40,000 Cr capacity threshold; may struggle to outperform","confidence":"high","data_not_available":false},
+            "manager_stability":{"score":100,"raw_value":11.5,"raw_unit":"years","category_context":"Rajeev Thakkar — 11.5 years tenure (long-tenured; strong continuity signal)","confidence":"high","data_not_available":false},
+            "track_record_length":{"score":100,"raw_value":5.0,"raw_unit":"years","category_context":"5.0 years of NAV data available","confidence":"high","data_not_available":false}
+          },
+          "flags":[]
+        },
+        {
+          "isin":"INF179K01MN8","scheme_name":"HDFC Corporate Bond Fund - Direct - Growth",
+          "category":"Debt","scheme_type":"Debt","current_value":453530,
+          "overall_verdict":"Excellent drawdown discipline, but in-line risk-adjusted return.",
+          "confidence_overall":"medium",
+          "nav_history_length_days":1825,
+          "scores":{
+            "expense_efficiency":{"score":0,"raw_value":null,"raw_unit":"%","category_context":"TER data not available — VR scrape extension pending","confidence":"medium","data_not_available":true},
+            "risk_adjusted_return":{"score":52.3,"raw_value":0.61,"raw_unit":"Sharpe ratio","category_context":"7.5% return at 0.8% volatility over 3.0y → Sharpe 0.61","confidence":"high","data_not_available":false},
+            "drawdown_discipline":{"score":88.4,"raw_value":2.8,"raw_unit":"%","category_context":"2.8% peak-to-trough vs ~5% category-normal","confidence":"high","data_not_available":false},
+            "concentration_fitness":{"score":0,"raw_value":null,"raw_unit":"effective stocks","category_context":"Holdings data not available from Value Research","confidence":"medium","data_not_available":true},
+            "fund_size_health":{"score":92.1,"raw_value":28000,"raw_unit":"Cr","category_context":"Rs.28,000 Cr — within Rs.500-100,000 Cr healthy band","confidence":"high","data_not_available":false},
+            "manager_stability":{"score":94.0,"raw_value":3.8,"raw_unit":"years","category_context":"Anupam Joshi — 3.8 years tenure","confidence":"high","data_not_available":false},
+            "track_record_length":{"score":100,"raw_value":5.0,"raw_unit":"years","category_context":"5.0 years of NAV data available","confidence":"high","data_not_available":false}
+          },
+          "flags":[]
+        }
+      ],
+      "tier_2_pending":[
+        "Portfolio turnover ratio (annual factsheet PDF parsing — different format per AMC)",
+        "Alpha vs category benchmark (needs SEBI-category benchmark NAV series sourcing)",
+        "Beta vs Nifty 50 (computable but most users don't act on it; deferred)"
+      ],
+      "disclaimers":[
+        "Scores compare against working category defaults; not against live AMFI medians yet.",
+        "Risk-adjusted scores use a 7% risk-free rate proxy (India 10y G-sec).",
+        "This is informational, not investment advice. Past returns do not predict future performance."
+      ]
+    }
+  };
+  state.portfolioData = sample;
+  renderPortfolio(sample);
+}
+
+// ════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════
+
+function renderPortfolio(data){
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('loadingState').classList.remove('active');
+  document.getElementById('portfolioView').classList.add('active');
+
+  var t = data.totals || {};
+  var df = data.data_freshness || {};
+  var schemes = data.schemes || [];
+
+  // Freshness bar
+  document.getElementById('freshnessText').textContent =
+    'Live data · NAV as of ' + (df.nav_date || '—') + ' · CAS snapshot ' + (df.cas_date || '—');
+  document.getElementById('schemeCountText').textContent =
+    schemes.length + ' scheme' + (schemes.length === 1 ? '' : 's');
+
+  // Hero — total value
+  document.getElementById('totalValue').textContent = fmtINR(t.current_value);
+  var totalSub = document.getElementById('totalSub');
+  totalSub.textContent = 'Was ' + fmtINR(t.cas_value) + ' at CAS date';
+
+  var totalChg = document.getElementById('totalChange');
+  if(t.absolute_change >= 0){
+    totalChg.className = 'sum-chg up';
+    totalChg.innerHTML = '▲ <strong>' + fmtFull(t.absolute_change) + '</strong> &nbsp;(' + fmtPct(t.percent_change) + ')';
+  } else {
+    totalChg.className = 'sum-chg dn';
+    totalChg.innerHTML = '▼ <strong>' + fmtFull(t.absolute_change) + '</strong> &nbsp;(' + fmtPct(t.percent_change) + ')';
+  }
+
+  // Today
+  document.getElementById('dayChange').textContent = fmtFull(t.day_change);
+  document.getElementById('dayChange').style.color = t.day_change >= 0 ? 'var(--ok)' : 'var(--err)';
+  document.getElementById('dayChangePct').textContent = fmtPct(t.day_change_pct);
+  document.getElementById('dayChangePct').className = 'sum-chg ' + (t.day_change >= 0 ? 'up' : 'dn');
+
+  // Since CAS
+  document.getElementById('periodGain').textContent = fmtFull(t.absolute_change);
+  document.getElementById('periodGain').style.color = t.absolute_change >= 0 ? 'var(--ok)' : 'var(--err)';
+  document.getElementById('periodGainPct').textContent = fmtPct(t.percent_change);
+  document.getElementById('periodGainPct').className = 'sum-chg ' + (t.absolute_change >= 0 ? 'up' : 'dn');
+
+  // Allocation by category
+  var catEl = document.getElementById('allocByCategory');
+  catEl.innerHTML = '';
+  var cats = data.allocation_by_category || {};
+  Object.keys(cats).forEach(function(name){
+    var info = cats[name];
+    var row = document.createElement('div');
+    row.className = 'alloc-row';
+    row.innerHTML =
+      '<div class="alloc-name">' + name + '</div>' +
+      '<div class="alloc-bar"><div class="alloc-bar-fill" style="width:' + info.percent + '%;"></div></div>' +
+      '<div class="alloc-pct">' + info.percent.toFixed(1) + '%</div>' +
+      '<div class="alloc-val">' + fmtINR(info.value) + '</div>';
+    catEl.appendChild(row);
+  });
+
+  // Allocation by AMC (top 6)
+  var amcEl = document.getElementById('allocByAmc');
+  amcEl.innerHTML = '';
+  var amcs = data.allocation_by_amc || {};
+  var amcNames = Object.keys(amcs).slice(0, 6);
+  amcNames.forEach(function(name){
+    var info = amcs[name];
+    // Trim "Mutual Fund" suffix for display compactness
+    var displayName = name.replace(/\s*Mutual\s*Fund\s*$/i, '');
+    var row = document.createElement('div');
+    row.className = 'alloc-row';
+    row.innerHTML =
+      '<div class="alloc-name">' + displayName + '</div>' +
+      '<div class="alloc-bar"><div class="alloc-bar-fill" style="width:' + info.percent + '%;"></div></div>' +
+      '<div class="alloc-pct">' + info.percent.toFixed(1) + '%</div>' +
+      '<div class="alloc-val">' + fmtINR(info.value) + '</div>';
+    amcEl.appendChild(row);
+  });
+
+  // Holdings table
+  var hbody = document.getElementById('holdingsBody');
+  hbody.innerHTML = '';
+  schemes.forEach(function(s){
+    var tr = document.createElement('tr');
+    var dayCls = s.day_change >= 0 ? 'pos' : 'neg';
+    var gainCls = s.percent_gain >= 0 ? 'pos' : 'neg';
+    tr.innerHTML =
+      '<td><div class="h-name">' + s.scheme_name + '</div>' +
+        '<div class="h-meta">' + (s.amc || '').replace(/\s*Mutual\s*Fund\s*$/i, '') +
+        (s.folio ? ' · ' + s.folio : '') + '</div></td>' +
+      '<td><span class="' + categoryClass(s.category) + '">' + (s.category || '—') + '</span></td>' +
+      '<td class="num">' + (s.units || 0).toLocaleString('en-IN', {maximumFractionDigits:3}) + '</td>' +
+      '<td class="num">' + (s.current_nav ? s.current_nav.toFixed(2) : '—') + '</td>' +
+      '<td class="num">' + fmtFull(s.current_value) + '</td>' +
+      '<td class="num ' + dayCls + '">' + (s.day_change ? (s.day_change >= 0 ? '+' : '') + Math.round(s.day_change).toLocaleString('en-IN') : '—') + '</td>' +
+      '<td class="num ' + gainCls + '">' + fmtPct(s.percent_gain) + '</td>';
+    hbody.appendChild(tr);
+  });
+
+  document.getElementById('holdingsMeta').textContent =
+    schemes.length + ' positions · sorted by value';
+
+  // Warnings
+  var warnings = data.warnings || [];
+  if(warnings.length > 0){
+    document.getElementById('warningsCard').style.display = 'block';
+    var wl = document.getElementById('warningsList');
+    wl.innerHTML = '';
+    warnings.forEach(function(w){
+      var li = document.createElement('li');
+      li.textContent = w;
+      wl.appendChild(li);
+    });
+  } else {
+    document.getElementById('warningsCard').style.display = 'none';
+  }
+
+  // ─── OVERLAP SECTION (Day 10) ───
+  // Inline overlap data takes precedence (sample portfolio case).
+  // Otherwise fetch from backend if API_BASE is set.
+  if(data.overlap_data){
+    renderOverlap(data.overlap_data);
+  } else if(API_BASE && schemes && schemes.length > 0){
+    fetchAndRenderOverlap(schemes);
+  } else {
+    document.getElementById('overlapSection').style.display = 'none';
+  }
+
+  // ─── TAX SECTION (Day 16) ───
+  // Same pattern as overlap: inline > backend fetch > hide gracefully
+  if(data.tax_data){
+    renderTax(data.tax_data);
+  } else if(API_BASE && schemes && schemes.length > 0){
+    fetchAndRenderTax();
+  } else {
+    document.getElementById('taxSection').style.display = 'none';
+  }
+
+  // ─── FUND SCORES SECTION (Day 19) ───
+  if(data.fund_scores_data){
+    renderFundScores(data.fund_scores_data);
+  } else if(API_BASE && schemes && schemes.length > 0){
+    fetchAndRenderFundScores();
+  } else {
+    document.getElementById('fsSection').style.display = 'none';
+  }
+}
+
+// ════════════════════════════════════════════════════
+// OVERLAP RENDERING (Day 10)
+// ════════════════════════════════════════════════════
+
+function fetchAndRenderOverlap(schemes){
+  // Show section in loading state immediately
+  var section = document.getElementById('overlapSection');
+  section.style.display = 'block';
+  document.getElementById('topOverlapsList').innerHTML =
+    '<div class="overlap-loading"><div class="loader"><span></span><span></span><span></span></div>Fetching fund holdings...</div>';
+
+  // Send the schemes the backend needs to look up
+  var payload = schemes.map(function(s){
+    return { isin: s.isin, scheme_name: s.scheme_name, current_value: s.current_value };
+  });
+
+  fetch(API_BASE + '/api/portfolio/overlap', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ schemes: payload })
+  })
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(overlapData){
+    renderOverlap(overlapData);
+  })
+  .catch(function(err){
+    console.warn('Overlap fetch failed:', err);
+    // Hide section gracefully — non-critical to the portfolio view
+    section.style.display = 'none';
+  });
+}
+
+function renderOverlap(o){
+  if(!o || o.total_unique_stocks === 0){
+    document.getElementById('overlapSection').style.display = 'none';
+    return;
+  }
+
+  var section = document.getElementById('overlapSection');
+  section.style.display = 'block';
+
+  // As-of date — show most recent holdings disclosure date if available
+  var asOf = '—';
+  if(o.top_overlaps && o.top_overlaps[0] && o.top_overlaps[0].as_of) asOf = o.top_overlaps[0].as_of;
+  if(o.holdings_as_of) asOf = o.holdings_as_of;
+  document.getElementById('overlapAsOf').textContent = 'Holdings as of ' + asOf;
+
+  // Headline stats
+  document.getElementById('ohUnique').textContent = o.total_unique_stocks || 0;
+  document.getElementById('ohEffective').textContent = (o.effective_stocks || 0).toFixed(0);
+  var top10El = document.getElementById('ohTop10');
+  top10El.textContent = (o.top_10_concentration_pct || 0).toFixed(1) + '%';
+  top10El.className = 'oh-stat-num' + (o.top_10_concentration_pct >= 50 ? ' crit'
+    : o.top_10_concentration_pct >= 35 ? ' warn' : '');
+  document.getElementById('ohDup').textContent = o.stocks_held_in_multiple_funds || 0;
+  document.getElementById('ohMessage').textContent = o.summary_message || '';
+
+  // Top overlaps ranked list
+  var topList = document.getElementById('topOverlapsList');
+  topList.innerHTML = '';
+  var topOverlaps = (o.top_overlaps || []);
+  document.getElementById('overlapStockPill').textContent =
+    topOverlaps.length + ' stock' + (topOverlaps.length === 1 ? '' : 's');
+
+  if(topOverlaps.length === 0){
+    topList.innerHTML = '<div style="font-size:0.78rem;color:var(--t3);padding:0.85rem 0;">No stocks held by 2 or more of your funds. Good diversification across schemes.</div>';
+  } else {
+    topOverlaps.slice(0, 12).forEach(function(s, idx){
+      var row = document.createElement('div');
+      row.className = 'olap-row';
+      var sectorHtml = s.sector ? '<span class="olap-meta-sector">'+s.sector+'</span>' : '';
+      row.innerHTML =
+        '<div class="olap-rank">'+(idx+1)+'</div>' +
+        '<div class="olap-stock">' +
+          '<div class="olap-name">'+escapeHtml(s.stock_name)+'</div>' +
+          '<div class="olap-meta">'+sectorHtml+'avg '+(s.average_weight_in_funds || 0).toFixed(1)+'% per fund</div>' +
+        '</div>' +
+        '<div class="olap-vals">' +
+          '<div class="olap-pct">'+(s.total_portfolio_weight || 0).toFixed(2)+'%</div>' +
+          '<div class="olap-fund-count">in <strong>'+s.fund_count+'</strong> funds</div>' +
+        '</div>';
+      topList.appendChild(row);
+    });
+  }
+
+  // Pairwise matrix
+  renderOverlapMatrix(o.pairwise_overlaps || [], state.portfolioData.schemes || []);
+
+  // Sector exposure
+  var sectorCard = document.getElementById('sectorCard');
+  var sectors = o.sector_exposure || [];
+  if(sectors.length > 0){
+    sectorCard.style.display = 'block';
+    document.getElementById('sectorPill').textContent = sectors.length + ' sectors';
+    var sectorList = document.getElementById('sectorList');
+    sectorList.innerHTML = '';
+    // Cap to top 10 sectors
+    sectors.slice(0, 10).forEach(function(sec){
+      var row = document.createElement('div');
+      row.className = 'sec-row';
+      var maxPct = sectors[0].portfolio_pct || 1;
+      var barWidth = Math.min(100, (sec.portfolio_pct / maxPct) * 100);
+      row.innerHTML =
+        '<div class="sec-name">'+escapeHtml(sec.sector)+
+          ' <span style="color:var(--t3);font-size:0.66rem;">('+sec.stock_count+')</span></div>' +
+        '<div class="sec-bar"><div class="sec-bar-fill" style="width:'+barWidth+'%;"></div></div>' +
+        '<div class="sec-pct">'+sec.portfolio_pct.toFixed(2)+'%</div>';
+      sectorList.appendChild(row);
+    });
+  } else {
+    sectorCard.style.display = 'none';
+  }
+
+  // Top stocks across portfolio (look-through)
+  // Backend returns `all_stocks` (sorted desc by weight); demo data uses `top_overlaps`.
+  // Fall back so this card works in both live and offline demo modes.
+  var topStocksCard = document.getElementById('topStocksCard');
+  var allStocks = o.all_stocks || o.top_overlaps || [];
+  if(allStocks.length > 0){
+    topStocksCard.style.display = 'block';
+    var topN = allStocks.slice(0, 15);
+    document.getElementById('topStocksPill').textContent =
+      'top ' + topN.length + ' of ' + allStocks.length;
+
+    var listEl = document.getElementById('topStocksList');
+    listEl.innerHTML = '';
+    var maxWeight = topN[0].total_portfolio_weight || 1;
+
+    topN.forEach(function(stock){
+      var row = document.createElement('div');
+      row.className = 'ts-row';
+      var barWidth = Math.min(100, (stock.total_portfolio_weight / maxWeight) * 100);
+      // Threshold for high-concentration flag: >5% of total portfolio in a single stock
+      var isHigh = stock.total_portfolio_weight >= 5.0;
+      var sectorPart = stock.sector
+        ? '<div class="ts-stock-sector">' + escapeHtml(stock.sector) + '</div>'
+        : '<div class="ts-stock-sector" style="opacity:0.5;">unclassified</div>';
+      var fundsLabel = stock.fund_count === 1
+        ? '1 fund'
+        : stock.fund_count + ' funds';
+      row.innerHTML =
+        '<div class="ts-stock-block">' +
+          '<div class="ts-stock-name">' + escapeHtml(stock.stock_name) + '</div>' +
+          sectorPart +
+        '</div>' +
+        '<div class="ts-fund-count">' + fundsLabel + '</div>' +
+        '<div class="ts-bar"><div class="ts-bar-fill ' + (isHigh ? 'high' : '') + '" style="width:' + barWidth + '%;"></div></div>' +
+        '<div class="ts-pct ' + (isHigh ? 'high' : '') + '">' + stock.total_portfolio_weight.toFixed(2) + '%</div>';
+      listEl.appendChild(row);
+    });
+
+    // Summary footer: surface the top-10 concentration + how many stocks are held across multiple funds
+    var multiFund = allStocks.filter(function(s){ return s.fund_count >= 2; }).length;
+    var top10 = o.top_10_concentration_pct || 0;
+    document.getElementById('topStocksSummary').innerHTML =
+      'Your <strong>top 10 stocks</strong> account for <strong>' + top10.toFixed(1) +
+      '%</strong> of total portfolio value. ' +
+      '<strong>' + multiFund + '</strong> stock' + (multiFund === 1 ? '' : 's') +
+      ' appear' + (multiFund === 1 ? 's' : '') + ' in more than one of your funds — these are the de-facto concentration risks no single fund factsheet would have surfaced.';
+  } else {
+    topStocksCard.style.display = 'none';
+  }
+
+  // Overlap warnings (severity-coloured)
+  var warnEl = document.getElementById('overlapWarnings');
+  warnEl.innerHTML = '';
+  var oWarnings = o.warnings || [];
+  oWarnings.slice(0, 8).forEach(function(w){
+    var sev = w.severity || 'low';
+    var icon = sev === 'high' ? '!' : sev === 'medium' ? '·' : 'i';
+    var div = document.createElement('div');
+    div.className = 'olap-warn ' + sev;
+    div.innerHTML =
+      '<div class="olap-warn-icon">'+icon+'</div>' +
+      '<div class="olap-warn-body">'+escapeHtml(w.message)+'</div>';
+    warnEl.appendChild(div);
+  });
+
+  // Excluded schemes panel (Day 12): debt/ETF/FoF/index funds shown with reasons
+  // + equity schemes where fetch failed
+  renderExcludedSchemes(o.excluded_by_type || [], o.fetch_failed || []);
+}
+
+function renderExcludedSchemes(excludedByType, fetchFailed){
+  var card = document.getElementById('excludedCard');
+  var list = document.getElementById('excludedList');
+  list.innerHTML = '';
+
+  var combined = [];
+  excludedByType.forEach(function(s){
+    combined.push({
+      scheme_name: s.scheme_name,
+      scheme_type: s.scheme_type,
+      reason: s.reason,
+      badge_class: (s.scheme_type || 'unknown').toLowerCase(),
+    });
+  });
+  fetchFailed.forEach(function(s){
+    combined.push({
+      scheme_name: s.scheme_name,
+      scheme_type: s.scheme_type || 'Equity',
+      reason: 'Holdings data temporarily unavailable: ' + (s.reason || 'fetch failed'),
+      badge_class: 'failed',
+    });
+  });
+
+  if(combined.length === 0){
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  combined.forEach(function(item){
+    var row = document.createElement('div');
+    row.className = 'excluded-row';
+    row.innerHTML =
+      '<div class="excluded-badge ' + item.badge_class + '">' + escapeHtml(item.scheme_type) + '</div>' +
+      '<div class="excluded-info">' +
+        '<div class="excluded-scheme-name">' + escapeHtml(item.scheme_name) + '</div>' +
+        '<div class="excluded-reason">' + escapeHtml(item.reason) + '</div>' +
+      '</div>';
+    list.appendChild(row);
+  });
+}
+
+function renderOverlapMatrix(pairs, schemes){
+  var matrix = document.getElementById('overlapMatrix');
+  matrix.innerHTML = '';
+
+  // Build a set of unique fund identities from the pairs (ISIN → name)
+  var funds = {};
+  pairs.forEach(function(p){
+    funds[p.isin_a] = p.scheme_name_a;
+    funds[p.isin_b] = p.scheme_name_b;
+  });
+  var fundIsins = Object.keys(funds);
+
+  // Need at least 2 funds to render a meaningful matrix
+  if(fundIsins.length < 2){
+    matrix.innerHTML = '<tr><td style="color:var(--t3);font-size:0.72rem;font-family:var(--fb);padding:0.85rem 0;">Need at least 2 analysable funds to show pairwise overlap.</td></tr>';
+    return;
+  }
+
+  // Build pair lookup for O(1) cell rendering
+  var pairLookup = {};
+  pairs.forEach(function(p){
+    var k1 = p.isin_a + '|' + p.isin_b;
+    var k2 = p.isin_b + '|' + p.isin_a;
+    pairLookup[k1] = p.overlap_pct;
+    pairLookup[k2] = p.overlap_pct;
+  });
+
+  // Header row: empty corner + column labels
+  var thead = document.createElement('thead');
+  var headerRow = document.createElement('tr');
+  headerRow.appendChild(document.createElement('th'));  // corner
+  fundIsins.forEach(function(isin){
+    var th = document.createElement('th');
+    th.className = 'col-label';
+    th.textContent = shortenFundName(funds[isin]);
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  matrix.appendChild(thead);
+
+  // Body rows
+  var tbody = document.createElement('tbody');
+  fundIsins.forEach(function(rowIsin){
+    var tr = document.createElement('tr');
+    var labelTd = document.createElement('td');
+    labelTd.className = 'row-label';
+    labelTd.textContent = shortenFundName(funds[rowIsin]);
+    labelTd.setAttribute('title', funds[rowIsin]);
+    tr.appendChild(labelTd);
+
+    fundIsins.forEach(function(colIsin){
+      var td = document.createElement('td');
+      if(rowIsin === colIsin){
+        td.className = 'matrix-cell diag';
+        td.textContent = '—';
+      } else {
+        var pct = pairLookup[rowIsin + '|' + colIsin] || 0;
+        td.className = 'matrix-cell';
+        td.style.background = overlapColor(pct);
+        td.textContent = pct.toFixed(0) + '%';
+        td.setAttribute('title', funds[rowIsin] + ' ↔ ' + funds[colIsin] + ': ' + pct.toFixed(1) + '% overlap');
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  matrix.appendChild(tbody);
+}
+
+function overlapColor(pct){
+  // 0 = transparent green, 30 = amber tint, 60+ = red tint
+  if(pct < 1) return 'rgba(45,212,160,0.05)';
+  if(pct < 15) return 'rgba(45,212,160,'+(0.12 + pct/100)+')';
+  if(pct < 35) return 'rgba(251,191,36,'+(0.12 + (pct-15)/80)+')';
+  if(pct < 60) return 'rgba(251,140,80,'+(0.18 + (pct-35)/120)+')';
+  return 'rgba(240,112,112,'+Math.min(0.4 + (pct-60)/180, 0.65)+')';
+}
+
+function shortenFundName(name){
+  if(!name) return '';
+  // Drop common suffixes that make the matrix labels too long
+  return name
+    .replace(/\s*Mutual Fund\s*$/i, '')
+    .replace(/\s*-\s*(Regular|Direct)\s*(Plan|Growth|Option).*$/i, '')
+    .replace(/\s*-\s*Growth$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .substring(0, 28);
+}
+
+function escapeHtml(s){
+  if(!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════
+// TAX RENDERING (Day 16)
+// ════════════════════════════════════════════════════
+
+function fetchAndRenderTax(){
+  // Tax engine works on the already-parsed portfolio, so we send the
+  // current portfolio JSON to the backend (which calls compute_tax_view).
+  var section = document.getElementById('taxSection');
+  section.style.display = 'block';
+  document.getElementById('taxSummary').textContent = 'Analysing your portfolio for tax patterns...';
+
+  fetch(API_BASE + '/api/portfolio/tax', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ portfolio: state.portfolioData })
+  })
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(taxData){ renderTax(taxData); })
+  .catch(function(err){
+    console.warn('Tax fetch failed:', err);
+    section.style.display = 'none';
+  });
+}
+
+function renderTax(t){
+  if(!t){
+    document.getElementById('taxSection').style.display = 'none';
+    return;
+  }
+
+  var section = document.getElementById('taxSection');
+  section.style.display = 'block';
+
+  // FY label
+  document.getElementById('taxFy').textContent = 'FY ' + (t.fy || '2025-26');
+
+  // Hero stats
+  var ag = t.approximate_gains || {};
+  var harvest = t.harvesting_opportunity || {};
+  var equityGain = ag.equity_gain_since_cas || 0;
+
+  document.getElementById('taxGain').textContent = fmtINR(equityGain);
+  document.getElementById('taxGain').className = 'tax-stat-num' + (equityGain > 0 ? ' ok' : ' muted');
+
+  var horizon = ag.approximate_horizon_months;
+  var cas = ag.cas_date || '';
+  document.getElementById('taxGainHorizon').textContent =
+    horizon ? '~' + horizon + ' months since ' + (cas || 'CAS date') : 'Equity portion only';
+
+  document.getElementById('taxHarvestable').textContent =
+    harvest.found ? fmtINR(harvest.estimated_harvestable) : '—';
+  document.getElementById('taxHarvestable').className =
+    'tax-stat-num' + (harvest.found ? ' ok' : ' muted');
+
+  document.getElementById('taxSaving').textContent =
+    harvest.found ? fmtINR(harvest.estimated_tax_saved_if_unrealised) : '—';
+  document.getElementById('taxSaving').className =
+    'tax-stat-num' + (harvest.found ? ' ok' : ' muted');
+
+  // Summary line
+  document.getElementById('taxSummary').textContent =
+    t.summary_message || 'Tax intelligence engine reviewed your portfolio.';
+
+  // Insight cards
+  var insightsEl = document.getElementById('taxInsights');
+  insightsEl.innerHTML = '';
+  var insights = t.insights || [];
+  insights.forEach(function(ins){
+    var sev = ins.severity || 'low';
+    var icon = sev === 'high' ? '◆' : sev === 'medium' ? '·' : 'i';
+    var cat = ins.category || '';
+    var pill = cat ? '<span class="tax-insight-pill">' + escapeHtml(cat) + '</span>' : '';
+
+    // Bold the "VERIFY..." sentence in harvest copy so it doesn't disappear into prose
+    var msg = escapeHtml(ins.message || '');
+    msg = msg.replace(
+      /(VERIFY[^.]+\.)/,
+      '<strong style="color:var(--t1);font-weight:600;">$1</strong>'
+    );
+
+    // Add a CTA link on the harvest card to the simulator
+    var cta = '';
+    if(cat === 'harvest'){
+      cta = '<a href="artha-tax-simulator.html" style="display:inline-block;margin-top:0.7rem;font-size:0.74rem;color:var(--gold-mid);text-decoration:none;border:1px solid rgba(201,149,46,0.3);padding:0.38rem 0.85rem;border-radius:100px;letter-spacing:0.3px;font-family:var(--fb);">Run this scenario with your numbers →</a>';
+    }
+
+    var div = document.createElement('div');
+    div.className = 'tax-insight ' + sev;
+    div.innerHTML =
+      '<div class="tax-insight-icon">' + icon + '</div>' +
+      '<div class="tax-insight-body">' +
+        '<div class="tax-insight-title">' + escapeHtml(ins.title || '') + pill + '</div>' +
+        '<div class="tax-insight-msg">' + msg + '</div>' +
+        cta +
+      '</div>';
+    insightsEl.appendChild(div);
+  });
+
+  if(insights.length === 0){
+    insightsEl.innerHTML =
+      '<div class="tax-insight low">' +
+        '<div class="tax-insight-icon">i</div>' +
+        '<div class="tax-insight-body">' +
+          '<div class="tax-insight-title">No immediate flags</div>' +
+          '<div class="tax-insight-msg">No tax-significant patterns detected from your current portfolio snapshot.</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  // IDCW detail card
+  var idcw = t.idcw_detection || {};
+  var idcwList = document.getElementById('taxIdcwList');
+  var idcwSchemes = idcw.idcw_schemes || [];
+  document.getElementById('taxIdcwPill').textContent =
+    idcwSchemes.length + ' scheme' + (idcwSchemes.length === 1 ? '' : 's');
+  idcwList.innerHTML = '';
+  if(idcwSchemes.length === 0){
+    idcwList.innerHTML = '<div class="tax-detail-empty">All your schemes appear to be Growth (or unmarked) variants — tax-efficient for accumulating investors.</div>';
+  } else {
+    idcwSchemes.forEach(function(s){
+      var row = document.createElement('div');
+      row.className = 'tax-detail-row';
+      row.innerHTML =
+        '<div class="tax-detail-row-l">' + escapeHtml(s.scheme_name || '') + '</div>' +
+        '<div class="tax-detail-row-r">' + fmtINR(s.current_value || 0) + '</div>';
+      idcwList.appendChild(row);
+    });
+  }
+
+  // ELSS detail card
+  var elss = t.elss_holdings || {};
+  var elssList = document.getElementById('taxElssList');
+  var elssSchemes = elss.schemes || [];
+  document.getElementById('taxElssPill').textContent =
+    elssSchemes.length > 0
+      ? elssSchemes.length + ' scheme' + (elssSchemes.length === 1 ? '' : 's')
+      : 'none';
+  elssList.innerHTML = '';
+  if(elssSchemes.length === 0){
+    elssList.innerHTML = '<div class="tax-detail-empty">No ELSS schemes detected. If you file under the old regime and haven\'t maxed your 80C through other instruments, ELSS is the highest-return 80C option with the shortest lock-in (3 years).</div>';
+  } else {
+    elssSchemes.forEach(function(s){
+      var row = document.createElement('div');
+      row.className = 'tax-detail-row';
+      row.innerHTML =
+        '<div class="tax-detail-row-l">' + escapeHtml(s.scheme_name || '') + '</div>' +
+        '<div class="tax-detail-row-r">' + fmtINR(s.current_value || 0) + '</div>';
+      elssList.appendChild(row);
+    });
+  }
+
+  // Caveats panel — show only if harvesting opportunity has caveats
+  var caveatsEl = document.getElementById('taxCaveats');
+  var caveatsListEl = document.getElementById('taxCaveatsList');
+  caveatsListEl.innerHTML = '';
+  var caveats = (harvest && harvest.caveats) || [];
+  if(caveats.length > 0){
+    caveatsEl.style.display = 'block';
+    caveats.forEach(function(c){
+      var li = document.createElement('li');
+      li.textContent = c;
+      caveatsListEl.appendChild(li);
+    });
+  } else {
+    caveatsEl.style.display = 'none';
+  }
+
+  // Hybrid review schemes (Day 16.5 review fix)
+  var reviewCard = document.getElementById('taxReviewCard');
+  var reviewList = document.getElementById('taxReviewList');
+  reviewList.innerHTML = '';
+  var reviewSchemes = (ag && ag.schemes_needing_review) || [];
+  if(reviewSchemes.length > 0){
+    reviewCard.style.display = 'block';
+    reviewSchemes.forEach(function(s){
+      var row = document.createElement('div');
+      row.className = 'tax-review-row';
+      row.innerHTML =
+        '<div class="tax-review-row-l">' +
+          '<div class="tax-review-row-name">' + escapeHtml(s.scheme_name || '') + '</div>' +
+          '<div class="tax-review-row-cat">' + escapeHtml(s.category || 'Hybrid') + ' · approx gain Rs.' +
+              (Math.round(s.approximate_gain || 0)).toLocaleString('en-IN') + ' since CAS</div>' +
+        '</div>' +
+        '<div class="tax-review-row-r">' + fmtINR(s.current_value || 0) + '</div>';
+      reviewList.appendChild(row);
+    });
+  } else {
+    reviewCard.style.display = 'none';
+  }
+}
+
+// ════════════════════════════════════════════════════
+// FUND SCORES RENDERING (Day 19)
+// ════════════════════════════════════════════════════
+
+function fetchAndRenderFundScores(){
+  var section = document.getElementById('fsSection');
+  section.style.display = 'block';
+  document.getElementById('fsGrid').innerHTML =
+    '<div class="fs-loading"><div class="loader"><span></span><span></span><span></span></div>Scoring your funds across 5 dimensions...</div>';
+
+  fetch(API_BASE + '/api/portfolio/fund-scores', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ portfolio: state.portfolioData })
+  })
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(data){ renderFundScores(data); })
+  .catch(function(err){
+    console.warn('Fund scores fetch failed:', err);
+    section.style.display = 'none';
+  });
+}
+
+function renderFundScores(data){
+  if(!data || !data.funds || data.funds.length === 0){
+    document.getElementById('fsSection').style.display = 'none';
+    return;
+  }
+
+  var section = document.getElementById('fsSection');
+  section.style.display = 'block';
+
+  var funds = data.funds || [];
+  document.getElementById('fsCount').textContent =
+    funds.length + ' fund' + (funds.length === 1 ? '' : 's') + ' scored';
+
+  var grid = document.getElementById('fsGrid');
+  grid.innerHTML = '';
+  funds.forEach(function(f){ grid.appendChild(buildFundCard(f)); });
+}
+
+function buildFundCard(f){
+  var card = document.createElement('div');
+  card.className = 'fs-card';
+
+  // Head: scheme name + category + confidence pill
+  var head = document.createElement('div');
+  head.className = 'fs-card-head';
+  head.innerHTML =
+    '<div>' +
+      '<div class="fs-card-name">' + escapeHtml(f.scheme_name || '') + '</div>' +
+      '<div class="fs-card-cat">' + escapeHtml(f.category || '') + ' · ' + fmtINR(f.current_value || 0) + '</div>' +
+    '</div>' +
+    '<div class="fs-conf-pill ' + (f.confidence_overall || 'medium') + '">' +
+      (f.confidence_overall || 'medium') + ' confidence</div>';
+  card.appendChild(head);
+
+  // Verdict line
+  if(f.overall_verdict){
+    var verdict = document.createElement('div');
+    verdict.className = 'fs-verdict';
+    verdict.textContent = f.overall_verdict;
+    card.appendChild(verdict);
+  }
+
+  // Dimension bars
+  var dims = f.scores || {};
+  var dimOrder = ['expense_efficiency', 'risk_adjusted_return', 'drawdown_discipline',
+                  'concentration_fitness', 'fund_size_health', 'manager_stability',
+                  'track_record_length'];
+  var dimLabels = {
+    'expense_efficiency': 'Cost',
+    'risk_adjusted_return': 'Risk-adj. return',
+    'drawdown_discipline': 'Drawdown discipline',
+    'concentration_fitness': 'Concentration fit',
+    'fund_size_health': 'Fund size health',
+    'manager_stability': 'Manager stability',
+    'track_record_length': 'Track record',
+  };
+  dimOrder.forEach(function(key){
+    var dim = dims[key];
+    if(!dim) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'fs-dim';
+    if(dim.data_not_available){
+      wrap.innerHTML =
+        '<div class="fs-dim-name">' + dimLabels[key] + '</div>' +
+        '<div class="fs-dim-bar"></div>' +
+        '<div class="fs-dim-score na">N/A</div>';
+    } else {
+      var sc = dim.score || 0;
+      var sClass = sc >= 75 ? 's-excellent' : sc >= 55 ? 's-good' : sc >= 35 ? 's-mid' : 's-weak';
+      wrap.innerHTML =
+        '<div class="fs-dim-name">' + dimLabels[key] + '</div>' +
+        '<div class="fs-dim-bar"><div class="fs-dim-bar-fill ' + sClass + '" style="width:' + Math.max(2, sc) + '%;"></div></div>' +
+        '<div class="fs-dim-score">' + sc.toFixed(0) + '</div>';
+    }
+    card.appendChild(wrap);
+
+    // Context line below the bar
+    if(dim.category_context){
+      var ctx = document.createElement('div');
+      ctx.className = 'fs-dim-context';
+      ctx.textContent = dim.category_context;
+      card.appendChild(ctx);
+    }
+  });
+
+  // Flags (if any)
+  var flags = f.flags || [];
+  if(flags.length > 0){
+    var fwrap = document.createElement('div');
+    fwrap.className = 'fs-flags';
+    flags.forEach(function(flag){
+      var sev = flag.severity || 'low';
+      var icon = sev === 'high' ? '!' : sev === 'medium' ? '·' : 'i';
+      var fdiv = document.createElement('div');
+      fdiv.className = 'fs-flag ' + sev;
+      fdiv.innerHTML =
+        '<div class="fs-flag-icon">' + icon + '</div>' +
+        '<div>' + escapeHtml(flag.message || '') + '</div>';
+      fwrap.appendChild(fdiv);
+    });
+    card.appendChild(fwrap);
+  }
+
+  return card;
+}
+
+// ════════════════════════════════════════════════════
+// NAV SCROLL EFFECT
+// ════════════════════════════════════════════════════
+
+window.addEventListener('scroll', function(){
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ════════════════════════════════════════════════════
+// AUTO-LOAD CACHED PORTFOLIO ON FIRST VISIT
+// ════════════════════════════════════════════════════
+
+window.addEventListener('DOMContentLoaded', function(){
+  // Try to restore the last parsed portfolio from localStorage
+  // (until Week 4 brings accounts + DB persistence)
+  loadCachedPortfolio();
+});
+</script>
+
+<script src="artha-blur-mode.js"></script>
+<script src="artha-ai-drawer.js"></script>
+</body>
+</html>

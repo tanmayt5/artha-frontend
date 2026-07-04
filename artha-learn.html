@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artha Learn -- Financial Literacy for Real Life</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#0A1E13;--forest-mid:#1A3A2A;--forest-card:rgba(18,42,28,0.55);
+  --gold:#C9952E;--gold-mid:#D4A843;--gold-glow:rgba(201,149,46,0.15);
+  --glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.07);--glass-h:rgba(255,255,255,0.08);
+  --t1:rgba(255,255,255,0.93);--t2:rgba(255,255,255,0.58);--t3:rgba(255,255,255,0.32);--t4:rgba(255,255,255,0.14);
+  --ok:#2DD4A0;--err:#F07070;
+  --fd:'Cormorant Garamond',Georgia,serif;
+  --fb:'Inter',system-ui,sans-serif;
+  --fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fb);background:var(--forest);color:var(--t1);overflow-x:hidden;}
+#particle-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.9;}
+body::before{content:'';position:fixed;inset:0;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;opacity:.5;}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;}
+.orb1{width:700px;height:700px;background:rgba(201,149,46,.055);top:-200px;right:-150px;animation:ob 22s ease-in-out infinite;}
+.orb2{width:500px;height:500px;background:rgba(26,58,42,.45);bottom:-100px;left:-80px;animation:ob 18s 7s ease-in-out infinite;}
+@keyframes ob{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-15px) scale(1.06);}}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:66px;background:rgba(10,30,19,.6);backdrop-filter:blur(28px);border-bottom:1px solid var(--glass-b);transition:background .4s;}
+nav.scrolled{background:rgba(10,30,19,.92);}
+.logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;}
+.logo-sym{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(201,149,46,.18),rgba(201,149,46,.04));border:1px solid rgba(201,149,46,.28);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.95rem;color:var(--gold-mid);font-weight:600;}
+.logo-word{font-family:var(--fd);font-size:1.45rem;font-weight:600;color:var(--t1);letter-spacing:-.5px;}
+.logo-word span{color:var(--gold);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:2rem;}
+.nav-links a{font-size:.8rem;color:var(--t2);text-decoration:none;transition:color .2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--t1);}
+.nav-cta{background:rgba(201,149,46,.1);color:var(--gold-mid);border:1px solid rgba(201,149,46,.3);padding:.475rem 1.2rem;border-radius:100px;font-size:.8rem;font-weight:500;text-decoration:none;transition:all .2s;backdrop-filter:blur(8px);}
+.nav-cta:hover{background:rgba(201,149,46,.2);}
+#progress-bar{position:fixed;top:66px;left:0;right:0;z-index:99;height:2px;background:var(--t4);}
+#progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-mid));transition:width .3s;box-shadow:0 0 8px rgba(201,149,46,.6);}
+main{display:grid;grid-template-columns:280px 1fr;min-height:100vh;padding-top:68px;position:relative;z-index:2;}
+aside{position:sticky;top:68px;height:calc(100vh - 68px);overflow-y:auto;padding:2rem 1.5rem;border-right:1px solid var(--glass-b);display:flex;flex-direction:column;gap:.25rem;}
+aside::-webkit-scrollbar{width:3px;}
+aside::-webkit-scrollbar-thumb{background:var(--glass-b);border-radius:2px;}
+.sb-head{font-size:.6rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--t3);font-weight:600;margin:1rem 0 .5rem;padding-left:.5rem;}
+.sb-head:first-child{margin-top:0;}
+.sb-item{display:flex;align-items:center;gap:.65rem;padding:.55rem .75rem;border-radius:10px;text-decoration:none;color:var(--t2);font-size:.79rem;transition:all .2s;border:1px solid transparent;position:relative;}
+.sb-item:hover{background:var(--glass);color:var(--t1);}
+.sb-item.active{background:rgba(201,149,46,.1);color:var(--gold-mid);border-color:rgba(201,149,46,.2);}
+.sb-icon{width:24px;height:24px;border-radius:6px;background:var(--glass);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-family:var(--fm);color:var(--t3);flex-shrink:0;border:1px solid var(--glass-b);}
+.sb-item.active .sb-icon{background:rgba(201,149,46,.12);color:var(--gold-mid);border-color:rgba(201,149,46,.2);}
+.sb-xp{font-family:var(--fm);font-size:.58rem;color:var(--gold-mid);background:rgba(201,149,46,.08);border:1px solid rgba(201,149,46,.18);padding:.12rem .42rem;border-radius:100px;margin-left:auto;}
+.xp-box{margin-top:auto;padding-top:1.25rem;}
+.xp-inner{background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;padding:1rem;}
+.xp-title{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:.65rem;font-family:var(--fm);}
+.xp-bar-wrap{height:5px;background:var(--t4);border-radius:3px;overflow:hidden;margin-bottom:.5rem;}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-mid));border-radius:3px;transition:width 1s cubic-bezier(.16,1,.3,1);}
+.xp-nums{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.62rem;color:var(--t3);}
+.xp-nums span{color:var(--gold-mid);}
+.content{padding:2.5rem 4% 4rem;max-width:860px;}
+.overview-header{margin-bottom:2.5rem;}
+.badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,149,46,.08);border:1px solid rgba(201,149,46,.18);color:rgba(201,149,46,.8);font-size:.6rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:.3rem .8rem;border-radius:100px;margin-bottom:1.1rem;}
+.badge::before{content:'diamond';font-family:var(--fm);font-size:.55rem;opacity:.5;}
+.overview-header h1{font-family:var(--fd);font-size:2.8rem;font-weight:300;line-height:1.15;margin-bottom:.6rem;}
+.overview-header h1 em{color:var(--gold);font-style:italic;}
+.overview-header p{font-size:.9rem;color:var(--t2);line-height:1.85;max-width:540px;}
+.stats-row{display:flex;gap:1rem;margin-bottom:2.5rem;flex-wrap:wrap;}
+.stat-chip{background:var(--glass);border:1px solid var(--glass-b);border-radius:12px;padding:.8rem 1.1rem;display:flex;align-items:center;gap:.65rem;backdrop-filter:blur(12px);}
+.stat-icon{width:28px;height:28px;border-radius:7px;background:rgba(201,149,46,.08);border:1px solid rgba(201,149,46,.16);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:.62rem;color:var(--gold-mid);}
+.stat-val{font-family:var(--fm);font-size:.9rem;color:var(--gold-mid);font-weight:500;}
+.stat-lbl{font-size:.65rem;color:var(--t3);}
+.modules-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:3rem;}
+.mod-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:20px;padding:1.5rem;text-decoration:none;display:block;transition:all .3s cubic-bezier(.23,1,.32,1);position:relative;overflow:hidden;}
+.mod-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,149,46,.03),transparent);pointer-events:none;}
+.mod-card:hover{transform:translateY(-4px);border-color:rgba(201,149,46,.22);box-shadow:0 20px 48px rgba(0,0,0,.4);}
+.mod-num{font-family:var(--fd);font-size:3.5rem;font-weight:300;color:rgba(201,149,46,.07);position:absolute;top:.6rem;right:1.1rem;line-height:1;}
+.mod-title{font-family:var(--fd);font-size:1.2rem;font-weight:600;margin-bottom:.4rem;position:relative;}
+.mod-desc{font-size:.78rem;color:var(--t2);line-height:1.7;position:relative;}
+.mod-meta{display:flex;align-items:center;gap:.5rem;margin-top:.85rem;position:relative;}
+.mod-tag{font-size:.6rem;font-weight:500;letter-spacing:.5px;background:var(--glass);border:1px solid var(--glass-b);padding:.18rem .5rem;border-radius:100px;color:var(--t3);}
+.mod-tag.beginner{color:var(--ok);border-color:rgba(45,212,160,0.22);background:rgba(45,212,160,0.07);}
+.mod-tag.intermediate{color:var(--gold-mid);border-color:rgba(201,149,46,.2);background:rgba(201,149,46,.06);}
+.mod-progress{font-family:var(--fm);font-size:.6rem;color:var(--t3);margin-left:auto;}
+.lesson-panel{display:none;}
+.lesson-panel.active{display:block;}
+.lesson-header{margin-bottom:2rem;}
+.lesson-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,149,46,.08);border:1px solid rgba(201,149,46,.18);color:rgba(201,149,46,.8);font-size:.6rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:.3rem .8rem;border-radius:100px;margin-bottom:1rem;}
+.lesson-h1{font-family:var(--fd);font-size:2.5rem;font-weight:300;line-height:1.15;margin-bottom:.5rem;}
+.lesson-h1 em{color:var(--gold);font-style:italic;}
+.lesson-meta{display:flex;align-items:center;gap:1.2rem;color:var(--t3);font-size:.73rem;font-family:var(--fm);}
+.lesson-body{font-size:.88rem;color:var(--t2);line-height:1.9;margin-bottom:2rem;}
+.lesson-body h3{font-family:var(--fd);font-size:1.3rem;font-weight:600;color:var(--t1);margin:2rem 0 .65rem;}
+.lesson-body p{margin-bottom:1rem;}
+.lesson-body strong{color:var(--t1);font-weight:500;}
+.lesson-body em{color:var(--gold-mid);}
+.concept-box{background:var(--forest-card);border:1px solid var(--glass-b);border-left:2px solid var(--gold);border-radius:0 12px 12px 0;padding:1.1rem 1.4rem;margin:1.5rem 0;backdrop-filter:blur(12px);}
+.concept-box .cb-title{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold-mid);margin-bottom:.45rem;font-weight:600;font-family:var(--fm);}
+.concept-box p{font-size:.83rem;color:var(--t2);line-height:1.75;margin:0;}
+.analogy-box{background:rgba(45,212,160,0.04);border:1px solid rgba(45,212,160,0.14);border-radius:12px;padding:1.1rem 1.4rem;margin:1.5rem 0;}
+.analogy-box .ab-title{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--ok);margin-bottom:.45rem;font-weight:600;font-family:var(--fm);}
+.analogy-box p{font-size:.83rem;color:var(--t2);line-height:1.75;margin:0;}
+.compare-table{width:100%;border-collapse:collapse;margin:1.5rem 0;border-radius:12px;overflow:hidden;}
+.compare-table th{background:rgba(201,149,46,.07);color:var(--gold-mid);font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;padding:.8rem 1rem;text-align:left;font-weight:600;border-bottom:1px solid rgba(201,149,46,.14);}
+.compare-table td{padding:.75rem 1rem;font-size:.8rem;color:var(--t2);border-bottom:1px solid var(--t4);background:var(--forest-card);}
+.compare-table tr:last-child td{border-bottom:none;}
+.compare-table tr:hover td{background:var(--glass-h);}
+td.pos{color:var(--ok);}td.neg{color:var(--err);}
+.calc-card{background:var(--forest-card);border:1px solid var(--glass-b);border-radius:20px;padding:1.6rem;margin:2rem 0;backdrop-filter:blur(20px);}
+.calc-title{font-family:var(--fd);font-size:1.15rem;font-weight:600;margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem;color:var(--t1);}
+.calc-title .ct-sym{font-family:var(--fm);font-size:.65rem;color:var(--gold-mid);background:rgba(201,149,46,.1);border:1px solid rgba(201,149,46,.2);width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;}
+.calc-field{display:flex;flex-direction:column;gap:.4rem;}
+.calc-field label{font-size:.7rem;color:var(--t3);font-weight:500;letter-spacing:.5px;font-family:var(--fm);}
+.calc-input{background:rgba(255,255,255,.04);border:1px solid var(--glass-b);border-radius:10px;padding:.6rem .9rem;color:var(--t1);font-family:var(--fm);font-size:.85rem;transition:border-color .2s,background .2s;width:100%;}
+.calc-input:focus{outline:none;border-color:rgba(201,149,46,.4);background:rgba(255,255,255,.06);}
+.calc-input[type=range]{padding:.2rem 0;background:transparent;border:none;accent-color:var(--gold);}
+.range-labels{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.62rem;color:var(--t4);margin-top:.15rem;}
+.calc-btn{background:linear-gradient(135deg,var(--gold),#B8892A);color:#0D1409;border:none;padding:.72rem 1.5rem;border-radius:100px;font-size:.82rem;font-weight:600;transition:all .25s cubic-bezier(.23,1,.32,1);}
+.calc-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(201,149,46,.3);}
+.calc-result{background:rgba(201,149,46,.05);border:1px solid rgba(201,149,46,.14);border-radius:12px;padding:1.1rem 1.4rem;margin-top:1rem;display:none;}
+.calc-result.show{display:block;}
+.cr-label{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:.4rem;font-family:var(--fm);}
+.cr-val{font-family:var(--fd);font-size:1.9rem;font-weight:600;color:var(--gold-mid);}
+.cr-sub{font-size:.76rem;color:var(--t2);margin-top:.35rem;line-height:1.65;}
+.quiz-card{background:var(--forest-card);border:1px solid var(--glass-b);border-radius:20px;padding:1.6rem;margin:2rem 0;backdrop-filter:blur(20px);}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;}
+.quiz-label{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold-mid);font-weight:600;font-family:var(--fm);}
+.quiz-score{font-family:var(--fm);font-size:.7rem;color:var(--t3);}
+.quiz-q{font-family:var(--fd);font-size:1.15rem;font-weight:600;line-height:1.4;margin-bottom:1.1rem;color:var(--t1);}
+.quiz-opts{display:flex;flex-direction:column;gap:.55rem;}
+.quiz-opt{background:var(--glass);border:1px solid var(--glass-b);border-radius:12px;padding:.8rem 1rem;font-size:.82rem;color:var(--t2);transition:all .2s;text-align:left;display:flex;align-items:center;gap:.65rem;}
+.quiz-opt:hover:not(:disabled){background:var(--glass-h);border-color:rgba(201,149,46,.25);color:var(--t1);}
+.quiz-opt.correct{background:rgba(45,212,160,0.10);border-color:rgba(45,212,160,0.22);color:var(--ok);}
+.quiz-opt.wrong{background:rgba(240,112,112,.07);border-color:rgba(240,112,112,.25);color:var(--err);}
+.quiz-opt:disabled{cursor:default!important;}
+.opt-dot{width:22px;height:22px;border-radius:50%;border:1px solid var(--glass-b);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-family:var(--fm);flex-shrink:0;color:var(--t3);}
+.quiz-feedback{margin-top:1rem;padding:.85rem 1rem;border-radius:10px;font-size:.8rem;line-height:1.65;display:none;}
+.quiz-feedback.show{display:block;}
+.quiz-feedback.correct{background:rgba(45,212,160,0.07);border:1px solid rgba(45,212,160,0.22);color:rgba(45,212,160,0.85);}
+.quiz-feedback.wrong{background:rgba(240,112,112,.05);border:1px solid rgba(240,112,112,.16);color:rgba(240,112,112,.8);}
+.quiz-next{margin-top:.9rem;background:var(--glass);border:1px solid var(--glass-b);color:var(--t1);padding:.55rem 1.1rem;border-radius:100px;font-size:.78rem;display:none;align-items:center;gap:.4rem;}
+.quiz-next.show{display:inline-flex;}
+.xp-toast{position:fixed;bottom:2rem;right:2rem;background:rgba(201,149,46,.12);border:1px solid rgba(201,149,46,.32);border-radius:100px;padding:.58rem 1.15rem;font-family:var(--fm);font-size:.76rem;color:var(--gold-mid);z-index:999;transform:translateY(80px);opacity:0;transition:all .4s cubic-bezier(.23,1,.32,1);}
+.xp-toast.show{transform:translateY(0);opacity:1;}
+.lesson-nav{display:flex;align-items:center;justify-content:space-between;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--t4);}
+.ln-btn{display:flex;align-items:center;gap:.5rem;color:var(--t2);font-size:.8rem;text-decoration:none;transition:color .2s;padding:.55rem .95rem;border-radius:100px;border:1px solid var(--glass-b);background:var(--glass);}
+.ln-btn:hover{color:var(--t1);border-color:rgba(201,149,46,.2);background:var(--glass-h);}
+.ln-btn.primary{background:rgba(201,149,46,.1);color:var(--gold-mid);border-color:rgba(201,149,46,.28);}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal.vis{opacity:1;transform:translateY(0);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--glass-b);border-radius:3px;}
+@media(max-width:900px){main{grid-template-columns:1fr;}aside{display:none;}.modules-grid{grid-template-columns:1fr;}.calc-grid{grid-template-columns:1fr;}}
+
+/* Canonical NEW pill for nav (Day 22 nav sweep) */
+.nav-pill-new{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:1.2px;color:#D4A843;background:rgba(201,149,46,0.1);border:1px solid rgba(201,149,46,0.3);padding:0.12rem 0.35rem;border-radius:100px;font-weight:500;margin-left:0.25rem;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<nav id="nav">
+  <a href="index.html" class="logo">
+    <div class="logo-sym">&#8377;</div>
+    <div class="logo-word">Artha<span>.</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="artha-portfolio.html">Portfolio</a>
+    <a href="artha-tax-simulator.html">Tax tools</a>
+    <a href="artha-screener.html">Screener</a>
+    <a href="artha-analysis.html">AI Analysis <span class="nav-pill-new">NEW</span></a>
+    <a href="artha-learn.html" class="active">Learn</a>
+    <a href="index.html#waitlist" class="nav-cta">Get early access &#8594;</a>
+  </div>
+</nav>
+
+<main>
+<aside>
+  <div class="sb-head">Foundations</div>
+  <a class="sb-item active" onclick="showModule('overview')"><div class="sb-icon">01</div> Overview</a>
+  <a class="sb-item" onclick="showLesson('money101')"><div class="sb-icon">02</div> Money 101<span class="sb-xp">+30 XP</span></a>
+  <a class="sb-item" onclick="showLesson('inflation')"><div class="sb-icon">03</div> Inflation Decoded<span class="sb-xp">+30 XP</span></a>
+  <div class="sb-head">Investing Basics</div>
+  <a class="sb-item" onclick="showLesson('compounding')"><div class="sb-icon">04</div> Power of Compounding<span class="sb-xp">+40 XP</span></a>
+  <a class="sb-item" onclick="showLesson('mf')"><div class="sb-icon">05</div> Mutual Funds<span class="sb-xp">+35 XP</span></a>
+  <a class="sb-item" onclick="showLesson('stocks')"><div class="sb-icon">06</div> Stocks vs FD<span class="sb-xp">+40 XP</span></a>
+  <div class="sb-head">Tax and Planning</div>
+  <a class="sb-item" onclick="showLesson('tax')"><div class="sb-icon">07</div> Tax Basics<span class="sb-xp">+45 XP</span></a>
+  <a class="sb-item" onclick="showLesson('goals')"><div class="sb-icon">08</div> Goal-Based Investing<span class="sb-xp">+50 XP</span></a>
+  <div class="xp-box">
+    <div class="xp-inner">
+      <div class="xp-title">&#9670; your progress</div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-fill" style="width:0%"></div></div>
+      <div class="xp-nums"><span id="xp-cur">0</span> / <span>340 XP</span></div>
+    </div>
+  </div>
+</aside>
+
+<div class="content">
+
+<!-- OVERVIEW -->
+<div id="panel-overview" class="lesson-panel active">
+  <div class="overview-header reveal">
+    <div class="badge">Financial Literacy</div>
+    <h1>Learn money.<br><em>Build wealth.</em></h1>
+    <p>No jargon. No fluff. Just clear, honest explanations of how money works in India -- with calculators and quizzes to make it stick.</p>
+  </div>
+  <div class="stats-row reveal">
+    <div class="stat-chip"><div class="stat-icon">08</div><div><div class="stat-val">8</div><div class="stat-lbl">Modules</div></div></div>
+    <div class="stat-chip"><div class="stat-icon">XP</div><div><div class="stat-val">340 XP</div><div class="stat-lbl">Total XP</div></div></div>
+    <div class="stat-chip"><div class="stat-icon">Calc</div><div><div class="stat-val">5</div><div class="stat-lbl">Calculators</div></div></div>
+    <div class="stat-chip"><div class="stat-icon">Q</div><div><div class="stat-val">16</div><div class="stat-lbl">Mini Quizzes</div></div></div>
+  </div>
+  <div class="modules-grid reveal">
+    <a class="mod-card" onclick="showLesson('money101')">
+      <div class="mod-num">01</div>
+      <div class="mod-title">Money 101</div>
+      <div class="mod-desc">What is money, really? Understand time value, purchasing power, and why keeping cash is a bad strategy.</div>
+      <div class="mod-meta"><span class="mod-tag beginner">Beginner</span><span class="mod-tag">8 min</span><span class="mod-progress">0 / 3 quizzes</span></div>
+    </a>
+    <a class="mod-card" onclick="showLesson('inflation')">
+      <div class="mod-num">02</div>
+      <div class="mod-title">Inflation Decoded</div>
+      <div class="mod-desc">Why Rs 100 buys less every year, and what that means for your savings. India's CPI vs your real returns.</div>
+      <div class="mod-meta"><span class="mod-tag beginner">Beginner</span><span class="mod-tag">7 min</span><span class="mod-progress">0 / 2 quizzes</span></div>
+    </a>
+    <a class="mod-card" onclick="showLesson('compounding')">
+      <div class="mod-num">03</div>
+      <div class="mod-title">Power of Compounding</div>
+      <div class="mod-desc">Einstein called it the 8th wonder. See how Rs 5,000/month becomes Rs 1.7 Cr -- and why starting early is everything.</div>
+      <div class="mod-meta"><span class="mod-tag beginner">Beginner</span><span class="mod-tag">10 min</span><span class="mod-progress">0 / 3 quizzes</span></div>
+    </a>
+    <a class="mod-card" onclick="showLesson('mf')">
+      <div class="mod-num">04</div>
+      <div class="mod-title">Mutual Funds</div>
+      <div class="mod-desc">Direct vs Regular plans, expense ratios, SIP vs lump sum. What SEBI categories actually mean for you.</div>
+      <div class="mod-meta"><span class="mod-tag intermediate">Intermediate</span><span class="mod-tag">12 min</span><span class="mod-progress">0 / 3 quizzes</span></div>
+    </a>
+    <a class="mod-card" onclick="showLesson('stocks')">
+      <div class="mod-num">05</div>
+      <div class="mod-title">Stocks vs FD</div>
+      <div class="mod-desc">The real risk-return tradeoff. Why FD safety is an illusion, and what equity volatility actually means.</div>
+      <div class="mod-meta"><span class="mod-tag intermediate">Intermediate</span><span class="mod-tag">10 min</span><span class="mod-progress">0 / 3 quizzes</span></div>
+    </a>
+    <a class="mod-card" onclick="showLesson('tax')">
+      <div class="mod-num">06</div>
+      <div class="mod-title">Tax Basics India</div>
+      <div class="mod-desc">Old vs New regime, LTCG, STCG, 80C -- explained so you actually understand the choice you are making.</div>
+      <div class="mod-meta"><span class="mod-tag intermediate">Intermediate</span><span class="mod-tag">12 min</span><span class="mod-progress">0 / 2 quizzes</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- LESSON: MONEY 101 -->
+<div id="panel-money101" class="lesson-panel">
+  <div class="lesson-header reveal">
+    <div class="lesson-badge">Foundations &middot; Module 01</div>
+    <h1 class="lesson-h1">Money 101 &mdash; <em>What is money, really?</em></h1>
+    <div class="lesson-meta"><span>8 min read</span><span>&nbsp;&middot;&nbsp;+30 XP</span><span>&nbsp;&middot;&nbsp;3 quizzes</span></div>
+  </div>
+  <div class="lesson-body reveal">
+    <p>Most people interact with money every day but rarely stop to ask: what is it, fundamentally? Money is a <strong>store of value, a medium of exchange, and a unit of account</strong>. What makes it valuable is not gold in a vault -- it is trust. The trust that the Rs 500 note in your hand will buy chai tomorrow just as it does today.</p>
+    <div class="concept-box">
+      <div class="cb-title">Key Concept -- Time Value of Money</div>
+      <p><strong>Rs 1,000 today is worth more than Rs 1,000 a year from now</strong> -- because today's money can be invested to earn returns. This single idea underlies all of finance. Every interest rate, every valuation, every EMI calculation flows from it.</p>
+    </div>
+    <h3>Why keeping cash is a losing game</h3>
+    <p>If inflation in India runs at ~6% per year and your savings account gives you 3%, you are <em>losing 3% of your real purchasing power every year</em>. On Rs 5 lakh in savings, that is Rs 15,000 quietly disappearing -- not from your account, but from what your money can actually buy.</p>
+    <div class="analogy-box">
+      <div class="ab-title">Real-Life Analogy</div>
+      <p>Think of money like ice. If you just hold it, it melts (inflation). Put it to work -- in an ice machine (investments) -- and it keeps producing more. The goal is not to save ice, it is to build the machine.</p>
+    </div>
+    <h3>The purchasing power trap</h3>
+    <p>Your father's first salary in 1990 might have been Rs 3,000. Today that would barely cover a week's groceries. That is purchasing power erosion. Wealth creation is not about earning more, it is about <strong>making your money grow faster than inflation</strong>.</p>
+  </div>
+  <div class="calc-card reveal">
+    <div class="calc-title"><div class="ct-sym">Rs</div> Real Value Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Amount Today (Rs)</label><input class="calc-input" type="number" id="rv-amount" value="100000"></div>
+      <div class="calc-field"><label>Years into the Future</label><input class="calc-input" type="number" id="rv-years" value="10"></div>
+      <div class="calc-field"><label>Inflation Rate -- <span id="rv-inf-lbl">6</span>% / yr</label><input class="calc-input" type="range" id="rv-inf" min="2" max="12" value="6" oninput="document.getElementById('rv-inf-lbl').textContent=this.value"><div class="range-labels"><span>2%</span><span>12%</span></div></div>
+      <div class="calc-field"><label>Savings Account Rate -- <span id="rv-rate-lbl">3</span>% / yr</label><input class="calc-input" type="range" id="rv-rate" min="1" max="8" value="3" oninput="document.getElementById('rv-rate-lbl').textContent=this.value"><div class="range-labels"><span>1%</span><span>8%</span></div></div>
+    </div>
+    <button class="calc-btn" onclick="calcRealValue()">Calculate Real Value</button>
+    <div class="calc-result" id="rv-result"><div class="cr-label">Purchasing Power After <span id="rv-years-out"></span> Years</div><div class="cr-val" id="rv-val"></div><div class="cr-sub" id="rv-sub"></div></div>
+  </div>
+  <div class="quiz-card reveal" id="quiz-m1q1">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 1 of 3</div></div>
+    <div class="quiz-q">If inflation is 6% and your FD earns 6.5%, what is your real return?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('m1q1',0,1,'Real return = nominal minus inflation. 6.5% - 6% = 0.5%. You barely kept pace.')"><div class="opt-dot">A</div> 0.5% -- just above inflation</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q1',1,1,'Correct. 6.5% minus 6% inflation = 0.5% real return.')"><div class="opt-dot">B</div> 0.5% real gain</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q1',2,1,'Not quite. Real return = nominal minus inflation.')"><div class="opt-dot">C</div> 12.5% combined return</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q1',3,1,'Incorrect. Real return must account for inflation.')"><div class="opt-dot">D</div> 6.5% -- your FD rate</button>
+    </div>
+    <div class="quiz-feedback" id="fb-m1q1"></div>
+    <button class="quiz-next" id="next-m1q1" onclick="showQuiz('m1q2')">Next Question &#8594;</button>
+  </div>
+  <div class="quiz-card reveal" id="quiz-m1q2" style="display:none">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 2 of 3</div></div>
+    <div class="quiz-q">What are the three functions of money?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('m1q2',0,2,'The three functions are store of value, medium of exchange, unit of account.')"><div class="opt-dot">A</div> Saving, spending, borrowing</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q2',1,2,'These describe monetary history, not economic function.')"><div class="opt-dot">B</div> Gold-backed, fiat, digital</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q2',2,2,'Correct. Store of value, medium of exchange, and unit of account.')"><div class="opt-dot">C</div> Store of value, medium of exchange, unit of account</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q2',3,2,'These describe forms of money, not its three functions.')"><div class="opt-dot">D</div> Cash, credit, investment</button>
+    </div>
+    <div class="quiz-feedback" id="fb-m1q2"></div>
+    <button class="quiz-next" id="next-m1q2" onclick="showQuiz('m1q3')">Next Question &#8594;</button>
+  </div>
+  <div class="quiz-card reveal" id="quiz-m1q3" style="display:none">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 3 of 3</div></div>
+    <div class="quiz-q">Which best describes the Time Value of Money?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('m1q3',0,1,'This describes compound interest, not TVM directly.')"><div class="opt-dot">A</div> Money earns interest over time</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q3',1,1,'Exactly right. Money available now is worth more than the same amount in the future due to its earning potential.')"><div class="opt-dot">B</div> Rs 1,000 today is worth more than Rs 1,000 tomorrow</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q3',2,1,'Inflation is related but is a separate concept from TVM.')"><div class="opt-dot">C</div> Inflation erodes value over time</button>
+      <button class="quiz-opt" onclick="answerQuiz('m1q3',3,1,'This describes the risk premium, not TVM.')"><div class="opt-dot">D</div> Risky assets earn more returns</button>
+    </div>
+    <div class="quiz-feedback" id="fb-m1q3"></div>
+    <button class="quiz-next" id="next-m1q3" onclick="showLesson('inflation');awardXP(30)">Complete Module -- +30 XP</button>
+  </div>
+  <div class="lesson-nav reveal">
+    <a class="ln-btn" onclick="showModule('overview')">&#8592; Overview</a>
+    <a class="ln-btn primary" onclick="showLesson('inflation')">Inflation Decoded &#8594;</a>
+  </div>
+</div>
+
+<!-- LESSON: INFLATION -->
+<div id="panel-inflation" class="lesson-panel">
+  <div class="lesson-header reveal">
+    <div class="lesson-badge">Foundations &middot; Module 02</div>
+    <h1 class="lesson-h1">Inflation &mdash; <em>The silent tax on wealth</em></h1>
+    <div class="lesson-meta"><span>7 min read</span><span>&nbsp;&middot;&nbsp;+30 XP</span><span>&nbsp;&middot;&nbsp;2 quizzes</span></div>
+  </div>
+  <div class="lesson-body reveal">
+    <p>Inflation is the general rise in prices over time. When inflation is 6%, a Rs 100 grocery basket today costs Rs 106 next year. Your money did not change -- but its purchasing power shrank. India's <strong>Consumer Price Index (CPI)</strong> measures this for a basket of goods a typical household buys.</p>
+    <div class="concept-box">
+      <div class="cb-title">India Context</div>
+      <p>India's CPI inflation has averaged ~5-6% over the past decade. Food inflation can spike much higher -- 8-10% in bad monsoon years. Your savings need to outrun this, not just match it.</p>
+    </div>
+    <h3>Real vs Nominal Returns</h3>
+    <p>A 7% FD sounds great -- until you realise 6% went to fighting inflation. Your <em>real return</em> is just 1%. Now add tax: FD interest is taxed at your income slab (30% for top earners), leaving you with a negative real return. This is the inflation trap most salaried professionals fall into.</p>
+    <table class="compare-table">
+      <tr><th>Investment</th><th>Nominal Return</th><th>After Tax</th><th>Real Return (6% inflation)</th></tr>
+      <tr><td>Savings Account</td><td>3%</td><td>2.1%</td><td class="neg">-3.9%</td></tr>
+      <tr><td>FD (7%)</td><td>7%</td><td>4.9%</td><td class="neg">-1.1%</td></tr>
+      <tr><td>Debt MF</td><td>7.5%</td><td>6.5%</td><td class="pos">+0.5%</td></tr>
+      <tr><td>Equity MF (10yr avg)</td><td>13%</td><td>11%</td><td class="pos">+5.0%</td></tr>
+    </table>
+    <div class="analogy-box">
+      <div class="ab-title">Think of it this way</div>
+      <p>Inflation is a treadmill that never stops. Stand still (cash) and you fall behind. Walk (FD) and you barely stay put. You need to run (equity) to actually move forward in real terms.</p>
+    </div>
+  </div>
+  <div class="calc-card reveal">
+    <div class="calc-title"><div class="ct-sym">%</div> Inflation Impact Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Monthly Expense Today (Rs)</label><input class="calc-input" type="number" id="inf-exp" value="50000"></div>
+      <div class="calc-field"><label>Years Ahead</label><input class="calc-input" type="number" id="inf-yrs" value="20"></div>
+      <div class="calc-field"><label>Inflation Rate -- <span id="inf-rate-lbl">6</span>%</label><input class="calc-input" type="range" id="inf-rate" min="3" max="12" value="6" oninput="document.getElementById('inf-rate-lbl').textContent=this.value"></div>
+    </div>
+    <button class="calc-btn" onclick="calcInflation()">See Future Cost</button>
+    <div class="calc-result" id="inf-result"><div class="cr-label">Monthly Expenses in <span id="inf-yrs-out"></span> Years</div><div class="cr-val" id="inf-val"></div><div class="cr-sub" id="inf-sub"></div></div>
+  </div>
+  <div class="quiz-card reveal" id="quiz-i1q1">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 1 of 2</div></div>
+    <div class="quiz-q">FD earns 7%, you are in the 30% tax bracket, inflation is 6%. What is your real post-tax return?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('i1q1',0,1,'Remember tax: 7% x (1-0.3) = 4.9%. Real = 4.9% - 6% = -1.1%.')"><div class="opt-dot">A</div> +1%</button>
+      <button class="quiz-opt" onclick="answerQuiz('i1q1',1,1,'Correct. 7% x 0.7 = 4.9% after tax, minus 6% inflation = -1.1% real return.')"><div class="opt-dot">B</div> -1.1%</button>
+      <button class="quiz-opt" onclick="answerQuiz('i1q1',2,1,'Account for tax first, then subtract inflation.')"><div class="opt-dot">C</div> +7%</button>
+      <button class="quiz-opt" onclick="answerQuiz('i1q1',3,1,'Tax applies to the full 7%, not just the excess over inflation.')"><div class="opt-dot">D</div> 0.5%</button>
+    </div>
+    <div class="quiz-feedback" id="fb-i1q1"></div>
+    <button class="quiz-next" id="next-i1q1" onclick="showQuiz('i1q2')">Next &#8594;</button>
+  </div>
+  <div class="quiz-card reveal" id="quiz-i1q2" style="display:none">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 2 of 2</div></div>
+    <div class="quiz-q">What does CPI measure?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('i1q2',0,0,'Correct. CPI measures price changes for a typical household basket of goods.')"><div class="opt-dot">A</div> Consumer Price Index -- retail inflation for a household basket</button>
+      <button class="quiz-opt" onclick="answerQuiz('i1q2',1,0,'WPI is Wholesale Price Index -- a different, producer-level metric.')"><div class="opt-dot">B</div> Capital Price Index -- asset price changes</button>
+      <button class="quiz-opt" onclick="answerQuiz('i1q2',2,0,'There is no RPI in India. CPI is the primary inflation benchmark.')"><div class="opt-dot">C</div> Credit Price Index -- a banking metric</button>
+    </div>
+    <div class="quiz-feedback" id="fb-i1q2"></div>
+    <button class="quiz-next" id="next-i1q2" onclick="showLesson('compounding');awardXP(30)">Complete -- +30 XP</button>
+  </div>
+  <div class="lesson-nav reveal">
+    <a class="ln-btn" onclick="showLesson('money101')">&#8592; Money 101</a>
+    <a class="ln-btn primary" onclick="showLesson('compounding')">Compounding &#8594;</a>
+  </div>
+</div>
+
+<!-- LESSON: COMPOUNDING -->
+<div id="panel-compounding" class="lesson-panel">
+  <div class="lesson-header reveal">
+    <div class="lesson-badge">Investing Basics &middot; Module 03</div>
+    <h1 class="lesson-h1">Compounding &mdash; <em>The 8th wonder of the world</em></h1>
+    <div class="lesson-meta"><span>10 min read</span><span>&nbsp;&middot;&nbsp;+40 XP</span><span>&nbsp;&middot;&nbsp;3 quizzes</span></div>
+  </div>
+  <div class="lesson-body reveal">
+    <p>Compounding is earning returns on your returns. Start with Rs 1 lakh at 12% per year: Year 1 gives you Rs 12,000. Year 2, that Rs 1.12 lakh earns Rs 13,440 -- not Rs 12,000. The base keeps growing. Over 25 years, your Rs 1 lakh becomes <strong>Rs 17 lakh</strong> without adding a single rupee more.</p>
+    <div class="concept-box">
+      <div class="cb-title">The Rule of 72</div>
+      <p>Divide 72 by your annual return rate to find how many years it takes to double your money. At 12% &mdash; 72 divided by 12 = <strong>6 years to double</strong>. At 6% (FD) &mdash; 12 years to double. The difference is enormous over a lifetime.</p>
+    </div>
+    <h3>Why starting early is everything</h3>
+    <p>Priya invests Rs 5,000/month from age 22 to 32 (10 years), then stops -- total invested: Rs 6 lakh. Rahul starts at 32 and invests Rs 5,000/month for 28 years until 60 -- total invested: Rs 16.8 lakh. At 12% returns, <em>Priya ends up with more money</em>. You cannot buy back time.</p>
+  </div>
+  <div class="calc-card reveal">
+    <div class="calc-title"><div class="ct-sym">SIP</div> SIP Compounding Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Monthly SIP Amount (Rs)</label><input class="calc-input" type="number" id="sip-amt" value="5000"></div>
+      <div class="calc-field"><label>Investment Period (Years)</label><input class="calc-input" type="number" id="sip-yrs" value="20"></div>
+      <div class="calc-field"><label>Expected Return -- <span id="sip-ret-lbl">12</span>% / yr</label><input class="calc-input" type="range" id="sip-ret" min="6" max="20" value="12" oninput="document.getElementById('sip-ret-lbl').textContent=this.value"></div>
+      <div class="calc-field"><label>Inflation Adjustment -- <span id="sip-inf-lbl">6</span>%</label><input class="calc-input" type="range" id="sip-inf" min="0" max="10" value="6" oninput="document.getElementById('sip-inf-lbl').textContent=this.value"></div>
+    </div>
+    <button class="calc-btn" onclick="calcSIP()">Calculate Corpus</button>
+    <div class="calc-result" id="sip-result"><div class="cr-label">Corpus at End of Period</div><div class="cr-val" id="sip-val"></div><div class="cr-sub" id="sip-sub"></div></div>
+  </div>
+  <div class="quiz-card reveal" id="quiz-c1q1">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 1 of 3</div></div>
+    <div class="quiz-q">Using the Rule of 72, how many years to double money at 9% returns?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('c1q1',0,1,'Rule of 72: 72 / 9 = 8 years.')"><div class="opt-dot">A</div> 6 years</button>
+      <button class="quiz-opt" onclick="answerQuiz('c1q1',1,1,'Correct. 72 divided by 9 = 8 years to double.')"><div class="opt-dot">B</div> 8 years</button>
+      <button class="quiz-opt" onclick="answerQuiz('c1q1',2,1,'Too long. 72 / 9 = 8 years.')"><div class="opt-dot">C</div> 10 years</button>
+      <button class="quiz-opt" onclick="answerQuiz('c1q1',3,1,'That would be for 4.5% returns.')"><div class="opt-dot">D</div> 16 years</button>
+    </div>
+    <div class="quiz-feedback" id="fb-c1q1"></div>
+    <button class="quiz-next" id="next-c1q1" onclick="showQuiz('c1q2')">Next &#8594;</button>
+  </div>
+  <div class="quiz-card reveal" id="quiz-c1q2" style="display:none">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 2 of 3</div></div>
+    <div class="quiz-q">What does compounding mean in investing?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('c1q2',0,1,'That is simple interest -- fixed return on original principal only.')"><div class="opt-dot">A</div> Earning a fixed return on original investment</button>
+      <button class="quiz-opt" onclick="answerQuiz('c1q2',1,1,'Exactly. Returns earned earlier themselves earn returns later -- exponential growth.')"><div class="opt-dot">B</div> Earning returns on your returns</button>
+      <button class="quiz-opt" onclick="answerQuiz('c1q2',2,1,'That is diversification, not compounding.')"><div class="opt-dot">C</div> Spreading money across many assets</button>
+    </div>
+    <div class="quiz-feedback" id="fb-c1q2"></div>
+    <button class="quiz-next" id="next-c1q2" onclick="showQuiz('c1q3')">Next &#8594;</button>
+  </div>
+  <div class="quiz-card reveal" id="quiz-c1q3" style="display:none">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 3 of 3</div></div>
+    <div class="quiz-q">Rs 1 lakh at 12%/year for 25 years becomes approximately:</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('c1q3',0,2,'Too low. (1.12)^25 is approximately 17.')"><div class="opt-dot">A</div> Rs 4 lakh</button>
+      <button class="quiz-opt" onclick="answerQuiz('c1q3',1,2,'Still an underestimate of compounding at 12%.')"><div class="opt-dot">B</div> Rs 8 lakh</button>
+      <button class="quiz-opt" onclick="answerQuiz('c1q3',2,2,'Correct. (1.12)^25 ≈ 17. Your money grows 17x.')"><div class="opt-dot">C</div> Rs 17 lakh</button>
+      <button class="quiz-opt" onclick="answerQuiz('c1q3',3,2,'That would need higher rates or longer periods.')"><div class="opt-dot">D</div> Rs 40 lakh</button>
+    </div>
+    <div class="quiz-feedback" id="fb-c1q3"></div>
+    <button class="quiz-next" id="next-c1q3" onclick="showLesson('mf');awardXP(40)">Complete -- +40 XP</button>
+  </div>
+  <div class="lesson-nav reveal">
+    <a class="ln-btn" onclick="showLesson('inflation')">&#8592; Inflation</a>
+    <a class="ln-btn primary" onclick="showLesson('mf')">Mutual Funds &#8594;</a>
+  </div>
+</div>
+
+<!-- LESSON: MUTUAL FUNDS -->
+<div id="panel-mf" class="lesson-panel">
+  <div class="lesson-header reveal">
+    <div class="lesson-badge">Investing Basics &middot; Module 04</div>
+    <h1 class="lesson-h1">Mutual Funds &mdash; <em>Investing made accessible</em></h1>
+    <div class="lesson-meta"><span>12 min read</span><span>&nbsp;&middot;&nbsp;+35 XP</span><span>&nbsp;&middot;&nbsp;3 quizzes</span></div>
+  </div>
+  <div class="lesson-body reveal">
+    <p>A mutual fund pools money from thousands of investors and invests it in stocks, bonds, or both -- managed by a professional fund manager. Instead of picking stocks yourself, you buy units of a fund that already owns a diversified portfolio. Regulated by SEBI. Invest from as little as Rs 500.</p>
+    <div class="concept-box">
+      <div class="cb-title">Direct vs Regular Plans -- This Matters</div>
+      <p><strong>Regular Plans</strong> go through a distributor or bank who earns commission (0.5-1% extra expense ratio). <strong>Direct Plans</strong> cut the middleman -- same fund, same manager, ~1% lower cost per year. Over 20 years on Rs 50L corpus, that is roughly <em>Rs 20-25 lakh more in your pocket</em>.</p>
+    </div>
+    <h3>SEBI Categories You Need to Know</h3>
+    <table class="compare-table">
+      <tr><th>Category</th><th>Invests In</th><th>Risk</th><th>Best For</th></tr>
+      <tr><td>Large Cap</td><td>Top 100 companies</td><td>Moderate</td><td>Conservative equity investor</td></tr>
+      <tr><td>Flexi Cap</td><td>Any market cap</td><td>Moderate-High</td><td>Core long-term allocation</td></tr>
+      <tr><td>Mid Cap</td><td>101-250 ranked cos</td><td>High</td><td>10+ year horizon</td></tr>
+      <tr><td>Small Cap</td><td>251+ ranked cos</td><td>Very High</td><td>Satellite, high conviction</td></tr>
+      <tr><td>Debt / Liquid</td><td>Bonds, T-Bills</td><td>Low</td><td>Emergency fund, short-term</td></tr>
+    </table>
+    <h3>SIP vs Lump Sum</h3>
+    <p><strong>SIP (Systematic Investment Plan)</strong> means investing a fixed amount every month. The benefit: you buy more units when markets are low and fewer when high -- rupee cost averaging. Most retail investors are better served by SIP over lump sum.</p>
+  </div>
+  <div class="calc-card reveal">
+    <div class="calc-title"><div class="ct-sym">vs</div> Direct vs Regular Plan Comparison</div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Monthly SIP (Rs)</label><input class="calc-input" type="number" id="dvr-sip" value="10000"></div>
+      <div class="calc-field"><label>Investment Period (Years)</label><input class="calc-input" type="number" id="dvr-yrs" value="20"></div>
+      <div class="calc-field"><label>Gross Fund Return -- <span id="dvr-ret-lbl">12</span>%</label><input class="calc-input" type="range" id="dvr-ret" min="8" max="18" value="12" oninput="document.getElementById('dvr-ret-lbl').textContent=this.value"></div>
+      <div class="calc-field"><label>Regular Plan Extra Cost -- <span id="dvr-cost-lbl">1.0</span>%</label><input class="calc-input" type="range" id="dvr-cost" min="5" max="15" step="1" value="10" oninput="document.getElementById('dvr-cost-lbl').textContent=(this.value/10).toFixed(1)"></div>
+    </div>
+    <button class="calc-btn" onclick="calcDirectVsRegular()">Compare Plans</button>
+    <div class="calc-result" id="dvr-result"><div class="cr-label">Extra Corpus with Direct Plan</div><div class="cr-val" id="dvr-val"></div><div class="cr-sub" id="dvr-sub"></div></div>
+  </div>
+  <div class="quiz-card reveal" id="quiz-mf1q1">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 1 of 3</div></div>
+    <div class="quiz-q">Why does a Direct Plan give better returns than a Regular Plan?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('mf1q1',0,1,'The fund manager is identical in both plans.')"><div class="opt-dot">A</div> Better fund manager</button>
+      <button class="quiz-opt" onclick="answerQuiz('mf1q1',1,1,'Correct. Direct plans eliminate distributor commission, reducing expense ratio by ~1%/yr.')"><div class="opt-dot">B</div> Lower expense ratio -- no distributor commission</button>
+      <button class="quiz-opt" onclick="answerQuiz('mf1q1',2,1,'Both are regulated by SEBI equally.')"><div class="opt-dot">C</div> More SEBI regulation</button>
+      <button class="quiz-opt" onclick="answerQuiz('mf1q1',3,1,'Risk depends on the fund category, not direct vs regular.')"><div class="opt-dot">D</div> Lower investment risk</button>
+    </div>
+    <div class="quiz-feedback" id="fb-mf1q1"></div>
+    <button class="quiz-next" id="next-mf1q1" onclick="showQuiz('mf1q2')">Next &#8594;</button>
+  </div>
+  <div class="quiz-card reveal" id="quiz-mf1q2" style="display:none">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 2 of 3</div></div>
+    <div class="quiz-q">Rupee cost averaging in SIP means:</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('mf1q2',0,1,'SIP does not guarantee a fixed return.')"><div class="opt-dot">A</div> You earn a guaranteed fixed return</button>
+      <button class="quiz-opt" onclick="answerQuiz('mf1q2',1,1,'Exactly. Fixed amount monthly means more units when NAV is low, fewer when high.')"><div class="opt-dot">B</div> You buy more units when NAV is low, fewer when high</button>
+      <button class="quiz-opt" onclick="answerQuiz('mf1q2',2,1,'That is lump sum investing, not SIP.')"><div class="opt-dot">C</div> You invest more when markets are rising</button>
+    </div>
+    <div class="quiz-feedback" id="fb-mf1q2"></div>
+    <button class="quiz-next" id="next-mf1q2" onclick="showQuiz('mf1q3')">Next &#8594;</button>
+  </div>
+  <div class="quiz-card reveal" id="quiz-mf1q3" style="display:none">
+    <div class="quiz-header"><div class="quiz-label">Quick Check</div><div class="quiz-score">Q 3 of 3</div></div>
+    <div class="quiz-q">Which SEBI category has the highest risk but also the highest growth potential?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz('mf1q3',0,2,'Large cap invests in India\'s top 100 companies -- relatively stable.')"><div class="opt-dot">A</div> Large Cap</button>
+      <button class="quiz-opt" onclick="answerQuiz('mf1q3',1,2,'Debt funds invest in bonds -- low risk, low return.')"><div class="opt-dot">B</div> Debt / Liquid</button>
+      <button class="quiz-opt" onclick="answerQuiz('mf1q3',2,2,'Correct. Small cap funds have the most volatility but the highest long-run return potential.')"><div class="opt-dot">C</div> Small Cap</button>
+    </div>
+    <div class="quiz-feedback" id="fb-mf1q3"></div>
+    <button class="quiz-next" id="next-mf1q3" onclick="showLesson('stocks');awardXP(35)">Complete -- +35 XP</button>
+  </div>
+  <div class="lesson-nav reveal">
+    <a class="ln-btn" onclick="showLesson('compounding')">&#8592; Compounding</a>
+    <a class="ln-btn primary" onclick="showLesson('stocks')">Stocks vs FD &#8594;</a>
+  </div>
+</div>
+
+<!-- LESSON: STOCKS vs FD -->
+<div id="panel-stocks" class="lesson-panel">
+  <div class="lesson-header reveal">
+    <div class="lesson-badge">Investing Basics &middot; Module 05</div>
+    <h1 class="lesson-h1">Stocks vs FD &mdash; <em>The real risk conversation</em></h1>
+    <div class="lesson-meta"><span>10 min read</span><span>&nbsp;&middot;&nbsp;+40 XP</span></div>
+  </div>
+  <div class="lesson-body reveal">
+    <p>Fixed Deposits feel safe. Your principal is guaranteed, the return is locked in. But after tax and inflation, FD real returns are often negative. The question is not "is FD risky?" -- it is "can you afford the risk of <em>not</em> growing your wealth?"</p>
+    <div class="concept-box">
+      <div class="cb-title">Risk is Not Volatility</div>
+      <p>Most people confuse volatility (short-term price swings) with actual risk (permanent loss of capital). A Nifty 50 index fund may fall 30% in a crash -- but historically recovers and reaches new highs. The real risk is selling in panic and locking in the loss permanently.</p>
+    </div>
+    <table class="compare-table">
+      <tr><th>Feature</th><th>FD</th><th>Equity (Long-Term)</th></tr>
+      <tr><td>Return (10yr avg)</td><td class="neg">6-7%</td><td class="pos">12-14% (Nifty)</td></tr>
+      <tr><td>After Tax</td><td class="neg">4.2-4.9% (30% slab)</td><td class="pos">10-12% (10% LTCG)</td></tr>
+      <tr><td>Real Return</td><td class="neg">-1 to 0%</td><td class="pos">+4 to 6%</td></tr>
+      <tr><td>Principal Safety</td><td class="pos">Guaranteed</td><td class="neg">Market-linked</td></tr>
+      <tr><td>Liquidity</td><td>Moderate (penalty for early break)</td><td class="pos">High (T+1 settlement)</td></tr>
+      <tr><td>Inflation Protection</td><td class="neg">None</td><td class="pos">Strong historically</td></tr>
+    </table>
+    <h3>The hybrid approach</h3>
+    <p>The answer is not FD or equity -- it is both, in the right proportions. Emergency fund: liquid MF or FD. Goals under 3 years: debt MF. Goals over 7 years: equity MF or direct stocks. <strong>Time horizon is the key variable</strong>, not just risk appetite.</p>
+  </div>
+  <div class="lesson-nav reveal">
+    <a class="ln-btn" onclick="showLesson('mf')">&#8592; Mutual Funds</a>
+    <a class="ln-btn primary" onclick="showLesson('tax');awardXP(40)">Tax Basics &mdash; +40 XP &#8594;</a>
+  </div>
+</div>
+
+<!-- LESSON: TAX -->
+<div id="panel-tax" class="lesson-panel">
+  <div class="lesson-header reveal">
+    <div class="lesson-badge">Tax and Planning &middot; Module 06</div>
+    <h1 class="lesson-h1">Tax Basics &mdash; <em>Keep more of what you earn</em></h1>
+    <div class="lesson-meta"><span>12 min read</span><span>&nbsp;&middot;&nbsp;+45 XP</span></div>
+  </div>
+  <div class="lesson-body reveal">
+    <p>India has two income tax regimes: <strong>Old Regime</strong> (with deductions like 80C, HRA, home loan interest) and <strong>New Regime</strong> (lower slab rates, most deductions gone). Neither is universally better -- it depends on your deductions and income level.</p>
+    <table class="compare-table">
+      <tr><th>Slab</th><th>Old Regime</th><th>New Regime (FY25)</th></tr>
+      <tr><td>Up to Rs 3L</td><td>Nil</td><td>Nil</td></tr>
+      <tr><td>Rs 3L - 7L</td><td>5%</td><td>5%</td></tr>
+      <tr><td>Rs 7L - 10L</td><td>20%</td><td>10%</td></tr>
+      <tr><td>Rs 10L - 12L</td><td>30%</td><td>15%</td></tr>
+      <tr><td>Rs 12L - 15L</td><td>30%</td><td>20%</td></tr>
+      <tr><td>Above Rs 15L</td><td>30%</td><td>30%</td></tr>
+    </table>
+    <div class="concept-box">
+      <div class="cb-title">Capital Gains Tax on Investments</div>
+      <p><strong>LTCG:</strong> Equity held more than 1 year &mdash; 10% on gains above Rs 1 lakh/year. <strong>STCG:</strong> Equity held less than 1 year &mdash; 15%. This makes long-term equity tax-efficient vs FD which is taxed at your full income slab rate.</p>
+    </div>
+    <h3>Section 80C -- The Rs 1.5L Deduction</h3>
+    <p>Under the Old Regime, 80C lets you deduct Rs 1.5 lakh from taxable income via ELSS funds, PPF, EPF, or life insurance premiums. For someone in the 30% slab, that is Rs 46,800 saved annually. ELSS has the shortest lock-in (3 years) and market-linked upside -- often the best 80C option for wealth builders.</p>
+  </div>
+  <div class="calc-card reveal">
+    <div class="calc-title"><div class="ct-sym">Tax</div> Old vs New Regime Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Annual Gross Income (Rs)</label><input class="calc-input" type="number" id="tax-inc" value="1500000"></div>
+      <div class="calc-field"><label>80C Investments (Rs, max 1.5L)</label><input class="calc-input" type="number" id="tax-80c" value="150000"></div>
+      <div class="calc-field"><label>HRA Exemption (Rs)</label><input class="calc-input" type="number" id="tax-hra" value="200000"></div>
+      <div class="calc-field"><label>Other Deductions (Rs)</label><input class="calc-input" type="number" id="tax-other" value="50000"></div>
+    </div>
+    <button class="calc-btn" onclick="calcTax()">Compare Regimes</button>
+    <div class="calc-result" id="tax-result"><div class="cr-label">Recommended Regime</div><div class="cr-val" id="tax-rec"></div><div class="cr-sub" id="tax-sub"></div></div>
+  </div>
+  <div class="lesson-nav reveal">
+    <a class="ln-btn" onclick="showLesson('stocks')">&#8592; Stocks vs FD</a>
+    <a class="ln-btn primary" onclick="showLesson('goals');awardXP(45)">Goal Planning &mdash; +45 XP &#8594;</a>
+  </div>
+</div>
+
+<!-- LESSON: GOALS -->
+<div id="panel-goals" class="lesson-panel">
+  <div class="lesson-header reveal">
+    <div class="lesson-badge">Tax and Planning &middot; Module 07</div>
+    <h1 class="lesson-h1">Goal-Based Investing &mdash; <em>Money with a purpose</em></h1>
+    <div class="lesson-meta"><span>10 min read</span><span>&nbsp;&middot;&nbsp;+50 XP</span></div>
+  </div>
+  <div class="lesson-body reveal">
+    <p>Random investing leads to random outcomes. Goal-based investing reverses the question: start with <em>what you need and when</em>, then work backwards to <em>how much to invest today</em>.</p>
+    <div class="concept-box">
+      <div class="cb-title">The Three Buckets Framework</div>
+      <p><strong>Bucket 1 &mdash; Safety (0-2 yrs):</strong> Emergency fund, near-term goals. Liquid MF, FD.<br><strong>Bucket 2 &mdash; Growth (3-7 yrs):</strong> Child's education, car. Balanced or Hybrid MF.<br><strong>Bucket 3 &mdash; Wealth (7+ yrs):</strong> Retirement, financial freedom. Pure equity, direct stocks.</p>
+    </div>
+    <p>The mistake most people make is treating all money as one undifferentiated pool. When markets fall, they panic-sell equity meant for retirement because they needed liquidity for a 2-year goal they had not ring-fenced. The three buckets prevent this entirely.</p>
+  </div>
+  <div class="calc-card reveal">
+    <div class="calc-title"><div class="ct-sym">SIP</div> Goal SIP Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Target Amount (Rs)</label><input class="calc-input" type="number" id="goal-amt" value="5000000"></div>
+      <div class="calc-field"><label>Years to Goal</label><input class="calc-input" type="number" id="goal-yrs" value="15"></div>
+      <div class="calc-field"><label>Expected Return -- <span id="goal-ret-lbl">12</span>%</label><input class="calc-input" type="range" id="goal-ret" min="6" max="18" value="12" oninput="document.getElementById('goal-ret-lbl').textContent=this.value"></div>
+      <div class="calc-field"><label>Current Savings (Rs, if any)</label><input class="calc-input" type="number" id="goal-cur" value="0"></div>
+    </div>
+    <button class="calc-btn" onclick="calcGoal()">Calculate Required SIP</button>
+    <div class="calc-result" id="goal-result"><div class="cr-label">Monthly SIP Required</div><div class="cr-val" id="goal-val"></div><div class="cr-sub" id="goal-sub"></div></div>
+  </div>
+
+  <div class="lesson-body reveal">
+    <h2 style="font-family:var(--fd);font-size:1.6rem;font-weight:500;margin:2rem 0 0.5rem;color:var(--t1);">FIRE &mdash; <em style="color:var(--gold);font-style:italic;">Financial Independence, Retire Early</em></h2>
+    <p>The 4% rule says: if you can live on 4% of your invested corpus per year, your money will likely outlast you. Flipped around &mdash; your <strong>FI number</strong> is 25&times; your annual expenses (1 / 0.04 = 25). Some prefer a more conservative 33&times; multiple for Indian context where equity premium is harder to count on.</p>
+    <p>FIRE is not about retiring at 35 to a beach. It is about removing financial coercion from your career choices &mdash; the ability to say no, to walk away, to take the risky bet, to spend a year with your child. That option has compounding value of its own.</p>
+  </div>
+
+  <div class="calc-card reveal">
+    <div class="calc-title"><div class="ct-sym">FIRE</div> FIRE Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-field"><label>Current Monthly Expenses (Rs)</label><input class="calc-input" type="number" id="fire-exp" value="75000"></div>
+      <div class="calc-field"><label>Current Corpus (Rs)</label><input class="calc-input" type="number" id="fire-cur" value="2500000"></div>
+      <div class="calc-field"><label>Monthly Savings / SIP (Rs)</label><input class="calc-input" type="number" id="fire-sav" value="40000"></div>
+      <div class="calc-field"><label>Withdrawal Rule -- <span id="fire-wr-lbl">4</span>% (25x multiple)</label><input class="calc-input" type="range" id="fire-wr" min="3" max="5" step="0.5" value="4" oninput="document.getElementById('fire-wr-lbl').textContent=this.value;calcFIRE()"></div>
+      <div class="calc-field"><label>Expected Return -- <span id="fire-ret-lbl">11</span>% / yr</label><input class="calc-input" type="range" id="fire-ret" min="6" max="16" value="11" oninput="document.getElementById('fire-ret-lbl').textContent=this.value;calcFIRE()"></div>
+      <div class="calc-field"><label>Inflation -- <span id="fire-inf-lbl">6</span>% / yr</label><input class="calc-input" type="range" id="fire-inf" min="3" max="10" value="6" oninput="document.getElementById('fire-inf-lbl').textContent=this.value;calcFIRE()"></div>
+    </div>
+    <button class="calc-btn" onclick="calcFIRE()">Calculate FIRE Timeline</button>
+    <div class="calc-result" id="fire-result"><div class="cr-label">Years to Financial Independence</div><div class="cr-val" id="fire-val"></div><div class="cr-sub" id="fire-sub"></div></div>
+  </div>
+
+  <div class="lesson-body reveal" style="margin-top:1.5rem;">
+    <div class="concept-box" style="background:rgba(96,165,250,0.05);border:1px solid rgba(96,165,250,0.18);">
+      <div class="cb-title" style="color:rgba(96,165,250,0.95);">A note on the assumptions</div>
+      <p>The 4% withdrawal rule was derived from US historical data (1926-1995, mostly bonds + S&amp;P 500). For India, equity premium has been higher but so has inflation. A more conservative 3.5% withdrawal (28&times; multiple) is defensible &mdash; we let you toggle this. We also do not account for healthcare cost inflation, which exceeds general CPI by 3-4 percentage points historically. Use this calculator as a directional anchor, not a precise plan.</p>
+    </div>
+  </div>
+  <div class="lesson-nav reveal">
+    <a class="ln-btn" onclick="showLesson('tax')">&#8592; Tax Basics</a>
+    <a class="ln-btn primary" onclick="showModule('overview');awardXP(50)">All Complete &mdash; +50 XP</a>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<div class="xp-toast" id="xp-toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var canvas=document.getElementById('particle-canvas');
+  var W=window.innerWidth,H=window.innerHeight;
+  var renderer=new THREE.WebGLRenderer({canvas:canvas,alpha:true,antialias:true});
+  renderer.setSize(W,H);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(70,W/H,0.1,100);
+  camera.position.z=9;
+  var COUNT=240,pos=new Float32Array(COUNT*3),vel=new Float32Array(COUNT*3);
+  for(var i=0;i<COUNT;i++){pos[i*3]=(Math.random()-.5)*26;pos[i*3+1]=(Math.random()-.5)*20;pos[i*3+2]=(Math.random()-.5)*10;vel[i*3]=(Math.random()-.5)*.003;vel[i*3+1]=(Math.random()-.5)*.003;vel[i*3+2]=0;}
+  var geo=new THREE.BufferGeometry(),posAttr=new THREE.BufferAttribute(pos,3);
+  geo.setAttribute('position',posAttr);
+  var mat=new THREE.PointsMaterial({color:0xC9952E,size:.06,transparent:true,opacity:.6,sizeAttenuation:true});
+  var points=new THREE.Points(geo,mat);scene.add(points);
+  var COUNT2=130,pos2=new Float32Array(COUNT2*3);
+  for(var j=0;j<COUNT2;j++){pos2[j*3]=(Math.random()-.5)*28;pos2[j*3+1]=(Math.random()-.5)*20;pos2[j*3+2]=(Math.random()-.5)*6;}
+  var geo2=new THREE.BufferGeometry();geo2.setAttribute('position',new THREE.BufferAttribute(pos2,3));
+  var mat2=new THREE.PointsMaterial({color:0xD4A843,size:.028,transparent:true,opacity:.32,sizeAttenuation:true});
+  var points2=new THREE.Points(geo2,mat2);scene.add(points2);
+  // Third dust layer
+  var COUNT3=70,pos3=new Float32Array(COUNT3*3);
+  for(var k3=0;k3<COUNT3;k3++){pos3[k3*3]=(Math.random()-.5)*32;pos3[k3*3+1]=(Math.random()-.5)*22;pos3[k3*3+2]=(Math.random()-.5)*4;}
+  var geo3=new THREE.BufferGeometry();geo3.setAttribute('position',new THREE.BufferAttribute(pos3,3));
+  var mat3=new THREE.PointsMaterial({color:0xE5B968,size:.018,transparent:true,opacity:.2,sizeAttenuation:true});
+  var points3=new THREE.Points(geo3,mat3);scene.add(points3);
+  var mx=0,my=0,tx=0,ty=0;
+  document.addEventListener('mousemove',function(e){tx=(e.clientX/W-.5)*1.8;ty=-(e.clientY/H-.5)*1.2;});
+  var time=0;
+  function animate(){
+    requestAnimationFrame(animate);time+=.004;
+    mx+=(tx-mx)*.03;my+=(ty-my)*.03;
+    camera.position.x+=(mx*.6-camera.position.x)*.025;
+    camera.position.y+=(my*.4-camera.position.y)*.025;
+    camera.lookAt(scene.position);
+    points.rotation.y=time*.04;points.rotation.x=Math.sin(time*.025)*.06;
+    points2.rotation.y=-time*.025;points2.rotation.z=time*.015;
+    points3.rotation.y=time*.018;points3.rotation.x=-Math.sin(time*.02)*.04;
+    for(var k=0;k<COUNT;k++){
+      pos[k*3]+=vel[k*3];pos[k*3+1]+=vel[k*3+1];
+      if(pos[k*3]>13)pos[k*3]=-13;if(pos[k*3]<-13)pos[k*3]=13;
+      if(pos[k*3+1]>10)pos[k*3+1]=-10;if(pos[k*3+1]<-10)pos[k*3+1]=10;
+    }
+    posAttr.needsUpdate=true;renderer.render(scene,camera);
+  }
+  animate();
+  window.addEventListener('resize',function(){W=window.innerWidth;H=window.innerHeight;camera.aspect=W/H;camera.updateProjectionMatrix();renderer.setSize(W,H);});
+})();
+
+
+var totalXP=0,quizState={};
+function fmt(n){if(n>=10000000)return 'Rs '+(n/10000000).toFixed(2)+' Cr';if(n>=100000)return 'Rs '+(n/100000).toFixed(2)+' L';return 'Rs '+Math.round(n).toLocaleString('en-IN');}
+window.addEventListener('scroll',function(){document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);var h=document.body.scrollHeight-window.innerHeight;if(h>0)document.getElementById('progress-fill').style.width=(window.scrollY/h*100)+'%';});
+function showModule(id){document.querySelectorAll('.lesson-panel').forEach(function(p){p.classList.remove('active');});document.getElementById('panel-'+id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+function showLesson(id){showModule(id);}
+function answerQuiz(qid,optIdx,correctIdx,feedback){
+  if(quizState[qid])return;quizState[qid]=true;
+  var opts=document.querySelectorAll('#quiz-'+qid+' .quiz-opt');
+  opts.forEach(function(o,i){o.disabled=true;if(i===correctIdx)o.classList.add('correct');if(i===optIdx&&optIdx!==correctIdx)o.classList.add('wrong');});
+  var fb=document.getElementById('fb-'+qid),isCorrect=(optIdx===correctIdx);
+  fb.className='quiz-feedback show '+(isCorrect?'correct':'wrong');
+  fb.textContent=(isCorrect?'Correct. ':'Not quite. ')+feedback;
+  var nxt=document.getElementById('next-'+qid);if(nxt)nxt.classList.add('show');
+  if(isCorrect){showXPToast('+5 XP');totalXP=Math.min(totalXP+5,340);updateXPBar();}
+}
+function showQuiz(qid){var el=document.getElementById('quiz-'+qid);if(el){el.style.display='block';el.scrollIntoView({behavior:'smooth',block:'center'});}}
+function awardXP(pts){totalXP=Math.min(totalXP+pts,340);updateXPBar();showXPToast('+'+pts+' XP -- module complete.');}
+function showXPToast(msg){var t=document.getElementById('xp-toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
+function updateXPBar(){document.getElementById('xp-fill').style.width=(totalXP/340*100)+'%';document.getElementById('xp-cur').textContent=totalXP;}
+function calcRealValue(){var a=parseFloat(document.getElementById('rv-amount').value)||100000,y=parseFloat(document.getElementById('rv-years').value)||10,inf=parseFloat(document.getElementById('rv-inf').value)/100,rate=parseFloat(document.getElementById('rv-rate').value)/100,realVal=a*Math.pow(1-inf,y),savingsVal=a*Math.pow(1+rate,y),realSavings=savingsVal*Math.pow(1-inf,y);document.getElementById('rv-years-out').textContent=y;document.getElementById('rv-val').textContent=fmt(realVal);document.getElementById('rv-sub').textContent='Savings account grows to '+fmt(savingsVal)+' nominally, but buys only '+fmt(realSavings)+' worth of goods today. Real return: '+((rate-inf)*100).toFixed(1)+'%/yr.';document.getElementById('rv-result').classList.add('show');}
+function calcInflation(){var e=parseFloat(document.getElementById('inf-exp').value)||50000,y=parseFloat(document.getElementById('inf-yrs').value)||20,r=parseFloat(document.getElementById('inf-rate').value)/100,future=e*Math.pow(1+r,y);document.getElementById('inf-yrs-out').textContent=y;document.getElementById('inf-val').textContent=fmt(future)+' / month';document.getElementById('inf-sub').textContent='Your current '+fmt(e)+'/month lifestyle costs '+fmt(future)+'/month in '+y+' years. Annual corpus needed: '+fmt(future*12/.04)+' (4% withdrawal rule).';document.getElementById('inf-result').classList.add('show');}
+function calcSIP(){var m=parseFloat(document.getElementById('sip-amt').value)||5000,y=parseFloat(document.getElementById('sip-yrs').value)||20,r=parseFloat(document.getElementById('sip-ret').value)/100/12,inf=parseFloat(document.getElementById('sip-inf').value)/100,n=y*12,corpus=m*(Math.pow(1+r,n)-1)/r*(1+r),invested=m*n,realCorpus=corpus/Math.pow(1+inf,y);document.getElementById('sip-val').textContent=fmt(corpus);document.getElementById('sip-sub').textContent='Total invested: '+fmt(invested)+' | Gains: '+fmt(corpus-invested)+' | Real value after '+document.getElementById('sip-inf').value+'% inflation: '+fmt(realCorpus);document.getElementById('sip-result').classList.add('show');}
+function calcDirectVsRegular(){var m=parseFloat(document.getElementById('dvr-sip').value)||10000,y=parseFloat(document.getElementById('dvr-yrs').value)||20,r=parseFloat(document.getElementById('dvr-ret').value)/100,c=parseFloat(document.getElementById('dvr-cost').value)/1000,n=y*12,rd=r/12,rr=(r-c)/12,direct=m*(Math.pow(1+rd,n)-1)/rd*(1+rd),regular=m*(Math.pow(1+rr,n)-1)/rr*(1+rr),diff=direct-regular;document.getElementById('dvr-val').textContent=fmt(diff);document.getElementById('dvr-sub').textContent='Direct plan corpus: '+fmt(direct)+' | Regular plan: '+fmt(regular)+'. The '+(c*100).toFixed(1)+'% extra cost compounds into this over '+y+' years.';document.getElementById('dvr-result').classList.add('show');}
+function calcTax(){var inc=parseFloat(document.getElementById('tax-inc').value)||0,c80=Math.min(parseFloat(document.getElementById('tax-80c').value)||0,150000),hra=parseFloat(document.getElementById('tax-hra').value)||0,oth=parseFloat(document.getElementById('tax-other').value)||0,std=50000,oldT=Math.max(inc-c80-hra-oth-std,0),oldTax=calcSlab(oldT,'old'),newT=Math.max(inc-std,0),newTax=calcSlab(newT,'new'),rec=oldTax<newTax?'Old Regime':'New Regime',save=Math.abs(newTax-oldTax);document.getElementById('tax-rec').textContent=rec+' saves '+fmt(save);document.getElementById('tax-sub').textContent='Old Regime tax: '+fmt(oldTax)+' on taxable income of '+fmt(oldT)+' | New Regime tax: '+fmt(newTax)+' on '+fmt(newT);document.getElementById('tax-result').classList.add('show');}
+function calcSlab(inc,regime){var t=0;if(regime==='old'){if(inc>1000000)t+=(inc-1000000)*.30;if(inc>500000)t+=Math.min(inc-500000,500000)*.20;if(inc>250000)t+=Math.min(inc-250000,250000)*.05;}else{if(inc>1500000)t+=(inc-1500000)*.30;if(inc>1200000)t+=Math.min(inc-1200000,300000)*.20;if(inc>1000000)t+=Math.min(inc-1000000,200000)*.15;if(inc>700000)t+=Math.min(inc-700000,300000)*.10;if(inc>300000)t+=Math.min(inc-300000,400000)*.05;}return t*1.04;}
+function calcGoal(){var target=parseFloat(document.getElementById('goal-amt').value)||5000000,y=parseFloat(document.getElementById('goal-yrs').value)||15,r=parseFloat(document.getElementById('goal-ret').value)/100/12,cur=parseFloat(document.getElementById('goal-cur').value)||0,n=y*12,futureOfCurrent=cur*Math.pow(1+r,n),remaining=Math.max(target-futureOfCurrent,0),sip=remaining*r/(Math.pow(1+r,n)-1)/(1+r);document.getElementById('goal-val').textContent=fmt(sip)+' / month';document.getElementById('goal-sub').textContent='To reach '+fmt(target)+' in '+y+' years at '+document.getElementById('goal-ret').value+'% returns. Current savings grow to '+fmt(futureOfCurrent)+', leaving a gap of '+fmt(remaining)+'.';document.getElementById('goal-result').classList.add('show');}
+
+function calcFIRE(){
+  // Inputs
+  var monthlyExp = parseFloat(document.getElementById('fire-exp').value) || 75000;
+  var curCorpus  = parseFloat(document.getElementById('fire-cur').value) || 0;
+  var monthlySav = parseFloat(document.getElementById('fire-sav').value) || 0;
+  var wr         = parseFloat(document.getElementById('fire-wr').value) / 100;   // e.g. 0.04
+  var rNominal   = parseFloat(document.getElementById('fire-ret').value) / 100;
+  var inf        = parseFloat(document.getElementById('fire-inf').value) / 100;
+
+  // Real rate of return — Fisher approximation kept honest
+  var rReal = (1 + rNominal) / (1 + inf) - 1;
+  var rMonthly = Math.pow(1 + rReal, 1/12) - 1;
+
+  // FI number = annual expenses / withdrawal rate (4% → 25x multiple).
+  // We work in today's rupees throughout (real returns), so the FI number
+  // is just today's expenses × multiple. No need to inflate.
+  var annualExp = monthlyExp * 12;
+  var fiNumber = annualExp / wr;
+  var multiple = 1 / wr;
+
+  // Find years-to-FI: FV of current corpus + FV of SIP stream = fiNumber
+  // Solve numerically (closed form is messy with SIP timing convention).
+  // We bisect on years between 0 and 80.
+  function projectedCorpus(years) {
+    if (years <= 0) return curCorpus;
+    var n = years * 12;
+    var fvCurrent = curCorpus * Math.pow(1 + rMonthly, n);
+    // SIP at start of month: FV = SIP × [(1+r)^n - 1] / r × (1+r)
+    var fvSip = rMonthly === 0
+      ? monthlySav * n
+      : monthlySav * (Math.pow(1 + rMonthly, n) - 1) / rMonthly * (1 + rMonthly);
+    return fvCurrent + fvSip;
+  }
+
+  var lo = 0, hi = 80, mid;
+  var reached = projectedCorpus(hi) >= fiNumber;
+
+  if (!reached) {
+    document.getElementById('fire-val').textContent = '60+ years';
+    document.getElementById('fire-sub').textContent =
+      'At this savings rate and return assumption, you may not reach the ' + multiple.toFixed(0) +
+      '× corpus of ' + fmt(fiNumber) + '. Increase monthly savings, lengthen horizon, or revisit the withdrawal-rate assumption.';
+    document.getElementById('fire-result').classList.add('show');
+    return;
+  }
+
+  for (var i = 0; i < 60; i++) {
+    mid = (lo + hi) / 2;
+    if (projectedCorpus(mid) >= fiNumber) hi = mid; else lo = mid;
+    if (hi - lo < 0.01) break;
+  }
+  var yearsToFI = hi;
+  var finalCorpus = projectedCorpus(yearsToFI);
+  var savingsRate = (monthlySav * 12) / (monthlySav * 12 + annualExp);
+
+  document.getElementById('fire-val').textContent = yearsToFI.toFixed(1) + ' years';
+  document.getElementById('fire-sub').textContent =
+    'FI corpus needed: ' + fmt(fiNumber) + ' (' + multiple.toFixed(0) + '× annual expenses, in today\'s rupees). ' +
+    'Real return assumption ' + (rReal * 100).toFixed(1) + '%/yr (nominal ' + (rNominal*100).toFixed(0) + '% minus ' + (inf*100).toFixed(0) + '% inflation). ' +
+    'Your current savings rate: ' + (savingsRate * 100).toFixed(0) + '%. ' +
+    'A savings rate above 50% is the single biggest lever — much more than higher returns.';
+  document.getElementById('fire-result').classList.add('show');
+}
+var ro=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:0.08,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(function(el){ro.observe(el);});
+</script>
+<script src="artha-blur-mode.js"></script>
+<script src="artha-ai-drawer.js"></script>
+</body>
+</html>

@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artha — Tax Scenario Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#0A1E13;--forest-mid:#1A3A2A;--forest-card:rgba(18,42,28,0.6);
+  --gold:#C9952E;--gold-mid:#D4A843;--gold-glow:rgba(201,149,46,0.15);
+  --glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.07);--glass-h:rgba(255,255,255,0.09);
+  --t1:rgba(255,255,255,0.93);--t2:rgba(255,255,255,0.58);--t3:rgba(255,255,255,0.32);--t4:rgba(255,255,255,0.12);
+  --ok:#2DD4A0;--err:#F07070;--info:#60A5FA;--warn:#FBBF24;
+  --fd:'Cormorant Garamond',Georgia,serif;
+  --fb:'Inter',system-ui,sans-serif;
+  --fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fb);background:var(--forest);color:var(--t1);overflow-x:hidden;min-height:100vh;}
+
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;}
+.orb1{width:520px;height:520px;background:rgba(45,212,160,0.04);top:-150px;right:-100px;animation:ob 22s ease-in-out infinite;}
+.orb2{width:420px;height:420px;background:rgba(26,58,42,0.35);bottom:-80px;left:-60px;animation:ob 18s 7s ease-in-out infinite;}
+@keyframes ob{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-15px) scale(1.06);}}
+
+body::before{content:'';position:fixed;inset:0;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;opacity:0.5;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:66px;background:rgba(10,30,19,0.6);backdrop-filter:blur(28px);border-bottom:1px solid var(--glass-b);}
+.logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;}
+.logo-sym{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(201,149,46,0.18),rgba(201,149,46,0.04));border:1px solid rgba(201,149,46,0.28);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:0.95rem;color:var(--gold-mid);font-weight:600;}
+.logo-word{font-family:var(--fd);font-size:1.45rem;font-weight:600;color:var(--t1);letter-spacing:-0.5px;}
+.logo-word span{color:var(--gold);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:2rem;}
+.nav-links a{font-size:0.8rem;color:var(--t2);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--t1);}
+.nav-cta{background:rgba(201,149,46,0.1);color:var(--gold-mid);border:1px solid rgba(201,149,46,0.3);padding:0.475rem 1.2rem;border-radius:100px;font-size:0.8rem;font-weight:500;text-decoration:none;}
+
+.page{padding:96px 4% 4rem;position:relative;z-index:2;max-width:1100px;margin:0 auto;}
+
+/* HEADER */
+.page-header{margin-bottom:1.8rem;}
+.badge{display:inline-flex;align-items:center;gap:0.4rem;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.18);color:rgba(96,165,250,0.9);font-size:0.6rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:0.3rem 0.8rem;border-radius:100px;margin-bottom:1rem;}
+.badge::before{content:'◆';font-size:0.48rem;opacity:0.7;}
+.page-header h1{font-family:var(--fd);font-size:2.5rem;font-weight:300;line-height:1.15;margin-bottom:0.5rem;}
+.page-header h1 em{color:var(--gold);font-style:italic;}
+.page-header .lede{font-size:0.85rem;color:var(--t2);line-height:1.7;max-width:660px;}
+.back-link{font-size:0.72rem;color:var(--t3);text-decoration:none;margin-bottom:1rem;display:inline-block;transition:color 0.2s;}
+.back-link:hover{color:var(--gold-mid);}
+
+/* PROMINENT DISCLAIMER */
+.big-disclaimer{background:rgba(96,165,250,0.05);border:1px solid rgba(96,165,250,0.22);border-radius:14px;padding:1.1rem 1.4rem;margin-bottom:1.8rem;display:flex;gap:0.85rem;align-items:flex-start;}
+.bd-icon{width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,0.18);color:rgba(96,165,250,0.95);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:0.78rem;font-weight:600;flex-shrink:0;}
+.bd-body{flex:1;font-size:0.79rem;color:var(--t2);line-height:1.7;}
+.bd-body strong{color:var(--t1);font-weight:600;display:block;margin-bottom:0.2rem;font-family:var(--fd);font-size:1rem;}
+
+/* TABS */
+.tabs{display:flex;gap:0.4rem;margin-bottom:1.4rem;border-bottom:1px solid var(--glass-b);padding-bottom:0;flex-wrap:wrap;}
+.tab{padding:0.7rem 1.2rem;font-size:0.82rem;color:var(--t2);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-family:var(--fb);font-weight:500;letter-spacing:0.2px;}
+.tab:hover{color:var(--t1);}
+.tab.active{color:var(--gold-mid);border-bottom-color:var(--gold);}
+.tab-num{font-family:var(--fm);font-size:0.65rem;color:var(--t3);margin-right:0.4rem;}
+.tab.active .tab-num{color:var(--gold-mid);}
+
+/* TOOL PANELS */
+.tool-panel{display:none;}
+.tool-panel.active{display:block;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.tool-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:1.1rem;align-items:flex-start;}
+.tool-card{background:var(--forest-card);backdrop-filter:blur(20px);border:1px solid var(--glass-b);border-radius:16px;padding:1.5rem;}
+.tool-card h3{font-family:var(--fd);font-size:1.2rem;font-weight:600;margin-bottom:0.3rem;color:var(--t1);}
+.tool-card .ts{font-size:0.7rem;color:var(--t3);font-family:var(--fm);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:1rem;}
+
+/* FORM CONTROLS */
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.7rem;color:var(--t3);font-family:var(--fm);letter-spacing:1px;text-transform:uppercase;margin-bottom:0.45rem;font-weight:500;}
+.field label .req{color:var(--gold-mid);margin-left:0.2rem;}
+.field-help{font-size:0.66rem;color:var(--t3);margin-top:0.3rem;line-height:1.5;font-family:var(--fb);}
+.input, .select{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--glass-b);border-radius:9px;padding:0.65rem 0.85rem;color:var(--t1);font-family:var(--fm);font-size:0.85rem;letter-spacing:0.3px;transition:border-color 0.15s,background 0.15s;}
+.input:focus, .select:focus{outline:none;border-color:rgba(201,149,46,0.4);background:rgba(255,255,255,0.06);}
+.select{cursor:pointer;}
+.input-prefix{position:relative;}
+.input-prefix::before{content:'₹';position:absolute;left:0.85rem;top:50%;transform:translateY(-50%);color:var(--t3);font-family:var(--fm);font-size:0.85rem;pointer-events:none;}
+.input-prefix input{padding-left:1.8rem;}
+
+.radio-group{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.radio-pill{flex:1;min-width:120px;cursor:pointer;}
+.radio-pill input{display:none;}
+.radio-pill .lbl{display:block;padding:0.55rem 0.8rem;border:1px solid var(--glass-b);border-radius:9px;font-size:0.78rem;color:var(--t2);text-align:center;background:rgba(255,255,255,0.025);transition:all 0.15s;font-family:var(--fb);}
+.radio-pill input:checked + .lbl{background:rgba(201,149,46,0.1);border-color:rgba(201,149,46,0.35);color:var(--gold-mid);}
+.radio-pill:hover .lbl{border-color:rgba(201,149,46,0.25);}
+
+/* RESULT */
+.result-card{background:linear-gradient(135deg,rgba(45,212,160,0.05),rgba(45,212,160,0.02));border:1px solid rgba(45,212,160,0.18);border-radius:16px;padding:1.5rem;min-height:280px;}
+.result-card .ts{color:rgba(45,212,160,0.85);}
+.result-empty{font-size:0.78rem;color:var(--t3);font-style:italic;text-align:center;padding:3rem 1rem;line-height:1.6;font-family:var(--fb);}
+
+.calc-line{display:flex;justify-content:space-between;align-items:baseline;padding:0.55rem 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.82rem;}
+.calc-line:last-child{border-bottom:none;}
+.calc-line .lbl{color:var(--t2);}
+.calc-line .val{font-family:var(--fm);color:var(--t1);font-size:0.85rem;}
+.calc-line.muted .val{color:var(--t3);}
+.calc-line.muted .lbl{color:var(--t3);font-size:0.76rem;}
+.calc-line.totals{padding-top:0.85rem;margin-top:0.5rem;border-top:1px solid rgba(201,149,46,0.2);}
+.calc-line.totals .lbl{color:var(--t1);font-weight:500;font-family:var(--fd);font-size:0.95rem;}
+.calc-line.totals .val{color:var(--gold-mid);font-size:1.05rem;font-weight:500;}
+.calc-section-title{font-family:var(--fm);font-size:0.6rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin:1rem 0 0.4rem 0;font-weight:600;}
+.calc-section-title:first-child{margin-top:0;}
+
+/* COMPARISON GRID (regime tool) */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;}
+.compare-card{background:rgba(255,255,255,0.025);border:1px solid var(--glass-b);border-radius:12px;padding:1rem 1.1rem;position:relative;}
+.compare-card.winner{border-color:rgba(45,212,160,0.35);background:rgba(45,212,160,0.04);}
+.compare-card.winner::after{content:'Lower';position:absolute;top:0.65rem;right:0.7rem;font-family:var(--fm);font-size:0.55rem;letter-spacing:1.5px;color:var(--ok);padding:0.18rem 0.5rem;background:rgba(45,212,160,0.12);border-radius:100px;font-weight:600;}
+.compare-card h4{font-family:var(--fd);font-size:0.98rem;font-weight:600;margin-bottom:0.45rem;color:var(--t1);}
+.compare-card .total{font-family:var(--fm);font-size:1.45rem;color:var(--gold-mid);font-weight:500;margin-bottom:0.6rem;letter-spacing:-0.5px;}
+.compare-card.winner .total{color:var(--ok);}
+.compare-card .row{display:flex;justify-content:space-between;font-size:0.74rem;padding:0.25rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.compare-card .row:last-child{border-bottom:none;}
+.compare-card .row .lbl{color:var(--t3);}
+.compare-card .row .val{font-family:var(--fm);color:var(--t1);}
+
+.regime-note{font-size:0.72rem;color:var(--t2);line-height:1.65;background:rgba(255,255,255,0.025);border:1px solid var(--glass-b);border-radius:10px;padding:0.85rem 1rem;margin-top:1rem;}
+.regime-note strong{color:var(--gold-mid);font-weight:500;}
+
+/* ASSUMPTIONS PANEL */
+.assumptions{background:rgba(255,255,255,0.02);border:1px solid var(--glass-b);border-radius:11px;padding:0.9rem 1rem;margin-top:1.1rem;font-size:0.7rem;color:var(--t3);line-height:1.65;font-family:var(--fb);}
+.assumptions-title{font-family:var(--fm);font-size:0.58rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);margin-bottom:0.5rem;font-weight:600;display:flex;align-items:center;gap:0.4rem;}
+.assumptions-title::before{content:'·';color:var(--warn);font-size:1.1rem;line-height:0.7;}
+.assumptions ul{list-style:none;padding:0;margin:0;}
+.assumptions li{padding:0.18rem 0 0.18rem 1rem;position:relative;}
+.assumptions li::before{content:'·';position:absolute;left:0.2rem;color:var(--t4);}
+
+/* PORTFOLIO HINT (when we detect cached portfolio) */
+.portfolio-hint{background:rgba(201,149,46,0.04);border:1px solid rgba(201,149,46,0.16);border-radius:10px;padding:0.7rem 1rem;margin-bottom:0.9rem;font-size:0.72rem;color:var(--t2);line-height:1.6;}
+.portfolio-hint strong{color:var(--gold-mid);font-weight:500;}
+
+/* FOOTER */
+.footer-disclaimer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--glass-b);font-size:0.7rem;color:var(--t3);line-height:1.7;text-align:center;}
+.footer-disclaimer strong{color:var(--t2);}
+
+@media(max-width:900px){
+  nav .nav-links a:not(.nav-cta){display:none;}
+  .page-header h1{font-size:2rem;}
+  .tool-grid{grid-template-columns:1fr;}
+  .compare-grid{grid-template-columns:1fr;}
+  .tab{padding:0.6rem 0.85rem;font-size:0.75rem;}
+}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--glass-b);border-radius:3px;}
+
+/* Canonical NEW pill for nav (Day 22 nav sweep) */
+.nav-pill-new{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:1.2px;color:#D4A843;background:rgba(201,149,46,0.1);border:1px solid rgba(201,149,46,0.3);padding:0.12rem 0.35rem;border-radius:100px;font-weight:500;margin-left:0.25rem;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav id="nav">
+  <a href="index.html" class="logo">
+    <div class="logo-sym">&#8377;</div>
+    <div class="logo-word">Artha<span>.</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="artha-portfolio.html">Portfolio</a>
+    <a href="artha-tax-simulator.html" class="active">Tax tools</a>
+    <a href="artha-screener.html">Screener</a>
+    <a href="artha-analysis.html">AI Analysis <span class="nav-pill-new">NEW</span></a>
+    <a href="artha-learn.html">Learn</a>
+    <a href="index.html#waitlist" class="nav-cta">Get early access &#8594;</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <a href="artha-portfolio.html" class="back-link">← Back to portfolio</a>
+
+  <div class="page-header">
+    <div class="badge">Scenario simulator</div>
+    <h1>Tax <em>scenarios</em>, run the math.</h1>
+    <p class="lede">Input an action. See the FY 2025-26 tax math step by step. Artha computes — you decide whether to act, in consultation with your CA. We don't recommend trades.</p>
+  </div>
+
+  <!-- Big disclaimer -->
+  <div class="big-disclaimer">
+    <div class="bd-icon">i</div>
+    <div class="bd-body">
+      <strong>This is a scenario simulator, not tax advice.</strong>
+      We compute math from the numbers you enter. We don't have your purchase dates, cost basis, or year-to-date realised gains — those affect real tax outcomes. Always verify holding period, prior FY usage of the ₹1.25L exemption, and exit-load implications with a qualified CA before acting on any scenario.
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tool="harvest"><span class="tab-num">01</span>LTCG harvest</button>
+    <button class="tab" data-tool="regime"><span class="tab-num">02</span>Old vs new regime</button>
+    <button class="tab" data-tool="sell"><span class="tab-num">03</span>Sell scenario</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- TOOL 1: LTCG HARVEST                            -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="tool-panel active" id="panel-harvest">
+    <div class="tool-grid">
+
+      <div class="tool-card">
+        <h3>LTCG harvest scenario</h3>
+        <div class="ts">Equity / equity MF held &gt; 12 months</div>
+
+        <div class="portfolio-hint" id="harvestPortfolioHint" style="display:none;">
+          <strong>Detected your portfolio.</strong> Pick a scheme from your holdings, or enter values manually.
+        </div>
+
+        <div class="field">
+          <label>Scheme (optional)</label>
+          <select class="select" id="harvestScheme">
+            <option value="">— Enter values manually —</option>
+          </select>
+          <div class="field-help">If your portfolio is loaded (from the portfolio page), pick from it.</div>
+        </div>
+
+        <div class="field">
+          <label>Amount you plan to sell <span class="req">*</span></label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="harvestAmount" placeholder="e.g. 200000" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Estimated current value of this position (optional)</label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="harvestPosition" placeholder="e.g. 500000" min="0">
+          </div>
+          <div class="field-help">Auto-fills if you picked a scheme.</div>
+        </div>
+
+        <div class="field">
+          <label>Estimated cost basis (what you originally invested in this slice) <span class="req">*</span></label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="harvestBasis" placeholder="e.g. 120000" min="0">
+          </div>
+          <div class="field-help">If you don't know exactly, your CAS won't tell you — you'll need your purchase records.</div>
+        </div>
+
+        <div class="field">
+          <label>LTCG exemption already used in FY 2025-26</label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="harvestUsed" placeholder="0" min="0" max="125000" value="0">
+          </div>
+          <div class="field-help">If you've already realised some LTCG this FY, enter it. Max ₹1,25,000.</div>
+        </div>
+
+        <button class="tab active" style="width:100%;margin-top:0.3rem;padding:0.85rem;border:1px solid rgba(201,149,46,0.3);border-bottom-color:rgba(201,149,46,0.3);background:rgba(201,149,46,0.08);border-radius:9px;color:var(--gold-mid);" onclick="runHarvest()">Compute scenario →</button>
+      </div>
+
+      <div class="result-card">
+        <div class="ts">Result</div>
+        <div id="harvestResult">
+          <div class="result-empty">Enter values on the left and click "Compute scenario" to see the math.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- TOOL 2: OLD vs NEW REGIME                       -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="tool-panel" id="panel-regime">
+    <div class="tool-grid">
+
+      <div class="tool-card">
+        <h3>Old vs new regime</h3>
+        <div class="ts">FY 2025-26 (AY 2026-27)</div>
+
+        <div class="field">
+          <label>Gross annual salary <span class="req">*</span></label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="regimeIncome" placeholder="e.g. 1800000" min="0">
+          </div>
+          <div class="field-help">Salary income before any deductions.</div>
+        </div>
+
+        <div class="field">
+          <label>Tax-payer type</label>
+          <div class="radio-group">
+            <label class="radio-pill"><input type="radio" name="payerType" value="salaried" checked><span class="lbl">Salaried</span></label>
+            <label class="radio-pill"><input type="radio" name="payerType" value="other"><span class="lbl">Non-salaried</span></label>
+          </div>
+          <div class="field-help">Salaried gets standard deduction (₹75K new / ₹50K old).</div>
+        </div>
+
+        <div class="field">
+          <label>80C deductions (old regime only)</label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="regime80C" placeholder="0" min="0" max="150000" value="0">
+          </div>
+          <div class="field-help">ELSS + PPF + EPF + life insurance + principal repayment. Capped at ₹1,50,000.</div>
+        </div>
+
+        <div class="field">
+          <label>80D health insurance (old regime only)</label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="regime80D" placeholder="0" min="0" max="100000" value="0">
+          </div>
+          <div class="field-help">Self+family premiums (₹25K) + parents (₹25K, ₹50K if senior).</div>
+        </div>
+
+        <div class="field">
+          <label>HRA exemption (old regime only)</label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="regimeHRA" placeholder="0" min="0" value="0">
+          </div>
+          <div class="field-help">Approximate HRA exempt portion you'd claim.</div>
+        </div>
+
+        <div class="field">
+          <label>Home loan interest u/s 24 (old regime only)</label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="regimeHomeLoan" placeholder="0" min="0" max="200000" value="0">
+          </div>
+          <div class="field-help">Self-occupied house: capped at ₹2,00,000/year.</div>
+        </div>
+
+        <button class="tab active" style="width:100%;margin-top:0.3rem;padding:0.85rem;border:1px solid rgba(201,149,46,0.3);border-bottom-color:rgba(201,149,46,0.3);background:rgba(201,149,46,0.08);border-radius:9px;color:var(--gold-mid);" onclick="runRegime()">Compare regimes →</button>
+      </div>
+
+      <div class="result-card">
+        <div class="ts">Result</div>
+        <div id="regimeResult">
+          <div class="result-empty">Enter your income and deductions to see old vs new regime side by side.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- TOOL 3: SELL SCENARIO (STCG vs LTCG)            -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="tool-panel" id="panel-sell">
+    <div class="tool-grid">
+
+      <div class="tool-card">
+        <h3>Sell scenario · STCG or LTCG</h3>
+        <div class="ts">Equity / equity mutual funds</div>
+
+        <div class="field">
+          <label>Scheme (optional)</label>
+          <select class="select" id="sellScheme">
+            <option value="">— Enter values manually —</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Sale value <span class="req">*</span></label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="sellAmount" placeholder="e.g. 300000" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Cost basis (what you invested in this slice) <span class="req">*</span></label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="sellBasis" placeholder="e.g. 200000" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Holding period <span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-pill"><input type="radio" name="holdingPeriod" value="short" checked><span class="lbl">&lt; 12 months</span></label>
+            <label class="radio-pill"><input type="radio" name="holdingPeriod" value="long"><span class="lbl">≥ 12 months</span></label>
+          </div>
+          <div class="field-help">For each SIP instalment, the 12-month clock starts from its own purchase date. FIFO applies. Your CAS doesn't tell us this — only you do.</div>
+        </div>
+
+        <div class="field">
+          <label>LTCG exemption already used in FY 2025-26 (if long-term)</label>
+          <div class="input-prefix">
+            <input type="number" class="input" id="sellUsed" placeholder="0" min="0" max="125000" value="0">
+          </div>
+        </div>
+
+        <button class="tab active" style="width:100%;margin-top:0.3rem;padding:0.85rem;border:1px solid rgba(201,149,46,0.3);border-bottom-color:rgba(201,149,46,0.3);background:rgba(201,149,46,0.08);border-radius:9px;color:var(--gold-mid);" onclick="runSell()">Compute tax →</button>
+      </div>
+
+      <div class="result-card">
+        <div class="ts">Result</div>
+        <div id="sellResult">
+          <div class="result-empty">Enter sale value, cost basis, and holding period to see the tax math.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER DISCLAIMER -->
+  <div class="footer-disclaimer">
+    <strong>Reminder.</strong> All numbers above are computed from your inputs against FY 2025-26 tax rules. Real tax outcomes depend on factors we can't see — exact purchase dates, FIFO across SIPs, surcharge thresholds, marginal relief, set-off rules, exit loads, STT, TDS, and the precise category classification of your fund. Verify with a CA before any action. Artha doesn't recommend trades, and nothing here should be construed as investment or tax advice.
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// FY 2025-26 TAX CONSTANTS (verified Day 16)
+// ════════════════════════════════════════════════════
+
+var LTCG_RATE = 0.125;
+var LTCG_EXEMPTION = 125000;
+var STCG_RATE = 0.20;
+var CESS = 0.04;
+
+// New regime slabs FY 2025-26 (Budget 2025)
+var NEW_SLABS = [
+  [400000,  0.00],   // 0-4L
+  [800000,  0.05],   // 4-8L
+  [1200000, 0.10],   // 8-12L
+  [1600000, 0.15],   // 12-16L
+  [2000000, 0.20],   // 16-20L
+  [2400000, 0.25],   // 20-24L
+  [Infinity, 0.30]   // 24L+
+];
+var NEW_STD_DED = 75000;
+var NEW_87A_REBATE = 60000;
+var NEW_87A_INCOME_LIMIT = 1200000;
+
+// Old regime slabs
+var OLD_SLABS = [
+  [250000,  0.00],
+  [500000,  0.05],
+  [1000000, 0.20],
+  [Infinity, 0.30]
+];
+var OLD_STD_DED = 50000;
+var OLD_87A_REBATE = 12500;
+var OLD_87A_INCOME_LIMIT = 500000;
+
+// ════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════
+
+function fmt(n){
+  if(!isFinite(n)) return '—';
+  var sign = n < 0 ? '-' : '';
+  n = Math.abs(n);
+  return sign + '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+function fmtPct(n){
+  return (n*100).toFixed(1) + '%';
+}
+
+function getInputVal(id){
+  var v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? 0 : v;
+}
+
+function computeSlabTax(taxable, slabs){
+  // Returns total tax across slabs, plus breakdown of [slab_label, slab_tax]
+  var tax = 0;
+  var breakdown = [];
+  var prev = 0;
+  for(var i=0; i<slabs.length; i++){
+    var upper = slabs[i][0];
+    var rate = slabs[i][1];
+    if(taxable <= prev) break;
+    var slabAmount = Math.min(taxable, upper) - prev;
+    var slabTax = slabAmount * rate;
+    tax += slabTax;
+    if(slabAmount > 0){
+      var lo = prev;
+      var hi = Math.min(taxable, upper);
+      breakdown.push({
+        range: fmt(lo) + ' – ' + (upper === Infinity ? '∞' : fmt(upper)),
+        amount: slabAmount,
+        rate: rate,
+        tax: slabTax,
+      });
+    }
+    prev = upper;
+  }
+  return { tax: tax, breakdown: breakdown };
+}
+
+// ════════════════════════════════════════════════════
+// TAB SWITCHING
+// ════════════════════════════════════════════════════
+
+document.getElementById('tabs').addEventListener('click', function(e){
+  var btn = e.target.closest('.tab');
+  if(!btn) return;
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  var tool = btn.getAttribute('data-tool');
+  document.querySelectorAll('.tool-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('panel-' + tool).classList.add('active');
+});
+
+// ════════════════════════════════════════════════════
+// PORTFOLIO INTEGRATION (read from localStorage)
+// ════════════════════════════════════════════════════
+
+(function loadPortfolioForScheme(){
+  try{
+    var raw = localStorage.getItem('artha_portfolio_v1');
+    if(!raw) return;
+    var wrapper = JSON.parse(raw);
+    var data = wrapper.data || wrapper;
+    var schemes = data.schemes || [];
+    if(schemes.length === 0) return;
+
+    // Filter to equity-taxed schemes
+    var equitySchemes = schemes.filter(function(s){
+      var cat = (s.category || '').toLowerCase();
+      var name = (s.scheme_name || '').toLowerCase();
+      if(cat.indexOf('debt') !== -1 || cat.indexOf('liquid') !== -1) return false;
+      return cat === 'equity' || cat === 'hybrid' || cat === 'index/etf' ||
+             name.indexOf('equity') !== -1 || name.indexOf('elss') !== -1 ||
+             name.indexOf('etf') !== -1 || name.indexOf('index') !== -1 ||
+             name.indexOf('hybrid') !== -1 || name.indexOf('balanced') !== -1;
+    });
+    if(equitySchemes.length === 0) return;
+
+    // Populate the harvest + sell dropdowns
+    ['harvestScheme', 'sellScheme'].forEach(function(id){
+      var sel = document.getElementById(id);
+      equitySchemes.forEach(function(s, i){
+        var opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = s.scheme_name + ' · ' + fmt(s.current_value || 0);
+        sel.appendChild(opt);
+      });
+    });
+
+    // When user picks a scheme, auto-fill the position value AND cost basis estimate.
+    // Honest framing: cost basis pre-fill uses cas_value as a *proxy* for original
+    // investment. It's almost certainly wrong (actual cost basis = sum of all
+    // purchase amounts, not CAS-date value). We make this clear in the UI.
+    document.getElementById('harvestScheme').addEventListener('change', function(){
+      var i = this.value;
+      if(i === '') return;
+      var s = equitySchemes[parseInt(i)];
+      document.getElementById('harvestPosition').value = Math.round(s.current_value || 0);
+      // Suggest cas_value as a starting point for basis with a clear note
+      if(s.cas_value){
+        document.getElementById('harvestBasis').value = Math.round(s.cas_value);
+        document.getElementById('harvestBasis').placeholder = 'Suggested: CAS-date value (NOT your actual cost basis)';
+      }
+    });
+    document.getElementById('sellScheme').addEventListener('change', function(){
+      var i = this.value;
+      if(i === '') return;
+      var s = equitySchemes[parseInt(i)];
+      if(s.cas_value){
+        document.getElementById('sellBasis').value = Math.round(s.cas_value);
+      }
+    });
+
+    document.getElementById('harvestPortfolioHint').style.display = 'block';
+  }catch(e){
+    console.warn('Portfolio load failed:', e);
+  }
+})();
+
+// ════════════════════════════════════════════════════
+// TOOL 1 — HARVEST SIMULATOR
+// ════════════════════════════════════════════════════
+
+function runHarvest(){
+  var amount = getInputVal('harvestAmount');
+  var basis = getInputVal('harvestBasis');
+  var used = getInputVal('harvestUsed');
+  used = Math.max(0, Math.min(used, LTCG_EXEMPTION));
+
+  if(amount <= 0 || basis <= 0){
+    document.getElementById('harvestResult').innerHTML =
+      '<div class="result-empty">Enter both a sale amount and a cost basis to compute.</div>';
+    return;
+  }
+
+  // Pro-rata gain = (gain / total_value) × sale_amount, but here we assume
+  // the user-entered basis IS the basis of the slice they're selling.
+  // We show that assumption transparently.
+  var gain = amount - basis;
+  var exemptionRemaining = Math.max(0, LTCG_EXEMPTION - used);
+  var exemptionApplied = Math.min(Math.max(0, gain), exemptionRemaining);
+  var taxableGain = Math.max(0, gain - exemptionApplied);
+  var tax = taxableGain * LTCG_RATE;
+  var cess = tax * CESS;
+  var totalTax = tax + cess;
+  var netProceeds = amount - totalTax;
+
+  var html = '';
+  html += '<div class="calc-section-title">Inputs you entered</div>';
+  html += line('Sale amount', fmt(amount));
+  html += line('Cost basis of slice', fmt(basis));
+  html += line('LTCG exemption already used (FY26)', fmt(used));
+
+  html += '<div class="calc-section-title">Gain computation</div>';
+  html += line('Capital gain (sale − basis)', fmt(gain), gain < 0 ? 'muted' : '');
+  if(gain <= 0){
+    html += '<div style="font-size:0.78rem;color:var(--t2);padding:0.7rem 0;line-height:1.6;">';
+    html += 'No capital gain — your basis equals or exceeds sale value. This is a tax-loss scenario; speak with your CA about loss harvesting (STCL can offset both STCG and LTCG; LTCL only against LTCG).';
+    html += '</div>';
+  } else {
+    html += line('LTCG exemption applied', fmt(exemptionApplied), 'muted');
+    html += line('Taxable gain after exemption', fmt(taxableGain));
+    html += '<div class="calc-section-title">Tax at 12.5% LTCG (Section 112A)</div>';
+    html += line('LTCG tax (12.5%)', fmt(tax));
+    html += line('Cess (4%)', fmt(cess), 'muted');
+    html += '<div class="calc-line totals"><div class="lbl">Total tax owed</div><div class="val">' + fmt(totalTax) + '</div></div>';
+    html += line('Net proceeds to you', fmt(netProceeds));
+  }
+
+  // Assumptions panel
+  html += '<div class="assumptions">';
+  html += '<div class="assumptions-title">Assumptions we made</div>';
+  html += '<ul>';
+  html += '<li>Holding is &gt; 12 months (you should verify this from purchase records)</li>';
+  html += '<li>Scheme is equity-oriented (≥65% equity allocation, for hybrids)</li>';
+  html += '<li>The basis you entered corresponds to the slice you\'re selling (not a portfolio-wide average)</li>';
+  html += '<li>You haven\'t triggered the surcharge threshold (income &gt; ₹50L) — surcharge would add 10-25% to the LTCG tax</li>';
+  html += '<li>No exit load (most equity funds have 1% exit load if redeemed within 12 months — verify with the fund\'s SID)</li>';
+  html += '<li>STT is already paid (required for the 12.5% rate; ensure your scheme is STT-paid)</li>';
+  html += '</ul></div>';
+
+  document.getElementById('harvestResult').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════
+// TOOL 2 — OLD vs NEW REGIME
+// ════════════════════════════════════════════════════
+
+function runRegime(){
+  var gross = getInputVal('regimeIncome');
+  var ded80C = Math.min(getInputVal('regime80C'), 150000);
+  var ded80D = Math.min(getInputVal('regime80D'), 100000);
+  var hra = getInputVal('regimeHRA');
+  var homeLoan = Math.min(getInputVal('regimeHomeLoan'), 200000);
+  var isSalaried = document.querySelector('input[name="payerType"]:checked').value === 'salaried';
+
+  if(gross <= 0){
+    document.getElementById('regimeResult').innerHTML =
+      '<div class="result-empty">Enter your gross annual income to compare.</div>';
+    return;
+  }
+
+  // ── OLD REGIME ──
+  var oldStdDed = isSalaried ? OLD_STD_DED : 0;
+  var oldDeductions = oldStdDed + ded80C + ded80D + hra + homeLoan;
+  var oldTaxable = Math.max(0, gross - oldDeductions);
+  var oldSlab = computeSlabTax(oldTaxable, OLD_SLABS);
+  var oldTaxBeforeRebate = oldSlab.tax;
+  var oldRebate = (oldTaxable <= OLD_87A_INCOME_LIMIT)
+    ? Math.min(oldTaxBeforeRebate, OLD_87A_REBATE)
+    : 0;
+  var oldTaxAfterRebate = Math.max(0, oldTaxBeforeRebate - oldRebate);
+  var oldCess = oldTaxAfterRebate * CESS;
+  var oldTotal = oldTaxAfterRebate + oldCess;
+
+  // ── NEW REGIME ──
+  var newStdDed = isSalaried ? NEW_STD_DED : 0;
+  var newDeductions = newStdDed;  // No 80C/80D/HRA/home loan under new regime
+  var newTaxable = Math.max(0, gross - newDeductions);
+  var newSlab = computeSlabTax(newTaxable, NEW_SLABS);
+  var newTaxBeforeRebate = newSlab.tax;
+  var newRebate = (newTaxable <= NEW_87A_INCOME_LIMIT)
+    ? Math.min(newTaxBeforeRebate, NEW_87A_REBATE)
+    : 0;
+  var newTaxAfterRebate = Math.max(0, newTaxBeforeRebate - newRebate);
+  var newCess = newTaxAfterRebate * CESS;
+  var newTotal = newTaxAfterRebate + newCess;
+
+  var oldWins = oldTotal < newTotal;
+  var savings = Math.abs(oldTotal - newTotal);
+
+  var html = '';
+  html += '<div style="font-size:0.78rem;color:var(--t2);line-height:1.65;margin-bottom:0.85rem;">';
+  html += 'On ₹' + Math.round(gross).toLocaleString('en-IN') + ' gross income, ';
+  if(savings < 100){
+    html += '<strong style="color:var(--t1);">both regimes produce nearly identical tax</strong>.';
+  } else {
+    html += 'the <strong style="color:var(--ok);">' + (oldWins ? 'OLD' : 'NEW') + ' regime</strong> ';
+    html += 'is lower by <strong style="color:var(--ok);">' + fmt(savings) + '</strong>.';
+  }
+  html += '</div>';
+
+  html += '<div class="compare-grid">';
+
+  // Old regime card
+  html += '<div class="compare-card' + (oldWins ? ' winner' : '') + '">';
+  html += '<h4>Old regime</h4>';
+  html += '<div class="total">' + fmt(oldTotal) + '</div>';
+  html += '<div class="row"><div class="lbl">Gross income</div><div class="val">' + fmt(gross) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Std deduction</div><div class="val">' + fmt(oldStdDed) + '</div></div>';
+  html += '<div class="row"><div class="lbl">80C</div><div class="val">' + fmt(ded80C) + '</div></div>';
+  html += '<div class="row"><div class="lbl">80D</div><div class="val">' + fmt(ded80D) + '</div></div>';
+  html += '<div class="row"><div class="lbl">HRA</div><div class="val">' + fmt(hra) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Home loan (Sec 24)</div><div class="val">' + fmt(homeLoan) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Taxable income</div><div class="val">' + fmt(oldTaxable) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Tax (slab)</div><div class="val">' + fmt(oldTaxBeforeRebate) + '</div></div>';
+  if(oldRebate > 0) html += '<div class="row"><div class="lbl">87A rebate</div><div class="val">-' + fmt(oldRebate) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Cess (4%)</div><div class="val">' + fmt(oldCess) + '</div></div>';
+  html += '</div>';
+
+  // New regime card
+  html += '<div class="compare-card' + (!oldWins ? ' winner' : '') + '">';
+  html += '<h4>New regime</h4>';
+  html += '<div class="total">' + fmt(newTotal) + '</div>';
+  html += '<div class="row"><div class="lbl">Gross income</div><div class="val">' + fmt(gross) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Std deduction</div><div class="val">' + fmt(newStdDed) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Other deductions</div><div class="val">— (none)</div></div>';
+  html += '<div class="row"><div class="lbl">Taxable income</div><div class="val">' + fmt(newTaxable) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Tax (slab)</div><div class="val">' + fmt(newTaxBeforeRebate) + '</div></div>';
+  if(newRebate > 0) html += '<div class="row"><div class="lbl">87A rebate</div><div class="val">-' + fmt(newRebate) + '</div></div>';
+  html += '<div class="row"><div class="lbl">Cess (4%)</div><div class="val">' + fmt(newCess) + '</div></div>';
+  html += '</div>';
+
+  html += '</div>';
+
+  // Regime note
+  html += '<div class="regime-note">';
+  html += '<strong>FY 2025-26 highlights:</strong> The new regime has a higher basic exemption (₹4L) and a ₹60K rebate making income up to ₹12L effectively tax-free. The old regime is typically better only if combined deductions exceed roughly ₹3-4L. Salaried individuals get ₹75K standard deduction under new regime (₹50K under old).';
+  html += '</div>';
+
+  // Assumptions
+  html += '<div class="assumptions">';
+  html += '<div class="assumptions-title">What this calculator does and doesn\'t cover</div>';
+  html += '<ul>';
+  html += '<li>Computes income tax on salary income only — no capital gains, no business income, no house property loss</li>';
+  html += '<li>Doesn\'t apply surcharge (kicks in above ₹50L income) — for high incomes, surcharge can shift the answer materially</li>';
+  html += '<li>Doesn\'t apply marginal relief that smooths the ₹12L cliff under new regime</li>';
+  html += '<li>Assumes you\'re not a senior citizen (old regime basic exemption is ₹3L for 60-80, ₹5L for 80+)</li>';
+  html += '<li>Doesn\'t factor 80CCD(1B) NPS, 80E education loan, 80EE/EEA home loan, donations, or any other deduction</li>';
+  html += '<li>For ITR filing, use the official income tax e-filing calculator or your CA</li>';
+  html += '</ul></div>';
+
+  document.getElementById('regimeResult').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════
+// TOOL 3 — SELL SCENARIO
+// ════════════════════════════════════════════════════
+
+function runSell(){
+  var amount = getInputVal('sellAmount');
+  var basis = getInputVal('sellBasis');
+  var used = Math.min(getInputVal('sellUsed'), LTCG_EXEMPTION);
+  var period = document.querySelector('input[name="holdingPeriod"]:checked').value;
+
+  if(amount <= 0 || basis <= 0){
+    document.getElementById('sellResult').innerHTML =
+      '<div class="result-empty">Enter both sale value and cost basis.</div>';
+    return;
+  }
+
+  var gain = amount - basis;
+  var html = '';
+  html += '<div class="calc-section-title">Inputs you entered</div>';
+  html += line('Sale value', fmt(amount));
+  html += line('Cost basis', fmt(basis));
+  html += line('Holding period', period === 'long' ? '≥ 12 months (long-term)' : '< 12 months (short-term)');
+
+  html += '<div class="calc-section-title">Gain</div>';
+  html += line('Capital gain', fmt(gain), gain < 0 ? 'muted' : '');
+
+  if(gain <= 0){
+    html += '<div style="font-size:0.78rem;color:var(--t2);padding:0.7rem 0;line-height:1.6;">';
+    html += 'No taxable gain. Capital loss can be carried forward up to 8 years. STCL can offset both STCG and LTCG; LTCL only against LTCG. Verify with your CA.';
+    html += '</div>';
+  } else if(period === 'short'){
+    // STCG at 20%
+    var stcgTax = gain * STCG_RATE;
+    var cess = stcgTax * CESS;
+    var total = stcgTax + cess;
+    html += '<div class="calc-section-title">Tax at 20% STCG (Section 111A)</div>';
+    html += line('STCG tax (20%)', fmt(stcgTax));
+    html += line('Cess (4%)', fmt(cess), 'muted');
+    html += '<div class="calc-line totals"><div class="lbl">Total tax owed</div><div class="val">' + fmt(total) + '</div></div>';
+    html += line('Net proceeds', fmt(amount - total));
+
+    // Show LTCG comparison if they wait
+    var ltcgExempt = Math.min(gain, Math.max(0, LTCG_EXEMPTION - used));
+    var ltcgTaxableSlice = Math.max(0, gain - ltcgExempt);
+    var ltcgTax = ltcgTaxableSlice * LTCG_RATE;
+    var ltcgTotal = ltcgTax + ltcgTax * CESS;
+    var saving = total - ltcgTotal;
+    if(saving > 100){
+      html += '<div class="regime-note" style="margin-top:1rem;">';
+      html += '<strong>If you wait until holding period crosses 12 months:</strong> Same gain would be taxed at LTCG ' +
+              '(₹1.25L exemption applied first, then 12.5% on the remainder). Estimated tax: ' + fmt(ltcgTotal) +
+              '. That\'s ' + fmt(saving) + ' less than selling now as STCG. ' +
+              '<em style="color:var(--t3);">Caveat: market moves before then are unpredictable.</em>';
+      html += '</div>';
+    }
+  } else {
+    // LTCG at 12.5% above 1.25L exemption
+    var exemptionRemaining = Math.max(0, LTCG_EXEMPTION - used);
+    var exemptionApplied = Math.min(gain, exemptionRemaining);
+    var taxable = Math.max(0, gain - exemptionApplied);
+    var ltcgTax = taxable * LTCG_RATE;
+    var cess = ltcgTax * CESS;
+    var total = ltcgTax + cess;
+
+    html += line('LTCG exemption available (FY26)', fmt(exemptionRemaining), 'muted');
+    html += line('Exemption applied', fmt(exemptionApplied), 'muted');
+    html += line('Taxable gain', fmt(taxable));
+    html += '<div class="calc-section-title">Tax at 12.5% LTCG (Section 112A)</div>';
+    html += line('LTCG tax (12.5%)', fmt(ltcgTax));
+    html += line('Cess (4%)', fmt(cess), 'muted');
+    html += '<div class="calc-line totals"><div class="lbl">Total tax owed</div><div class="val">' + fmt(total) + '</div></div>';
+    html += line('Net proceeds', fmt(amount - total));
+  }
+
+  // Assumptions
+  html += '<div class="assumptions">';
+  html += '<div class="assumptions-title">Assumptions we made</div>';
+  html += '<ul>';
+  html += '<li>Equity / equity-oriented MF (≥65% equity for hybrid)</li>';
+  html += '<li>STT paid (required for the 20%/12.5% concessional rates)</li>';
+  html += '<li>You correctly classified the holding period — for SIPs, FIFO applies and each instalment has its own clock</li>';
+  html += '<li>No surcharge (your income &lt; ₹50L)</li>';
+  html += '<li>No exit load (most equity funds have 1% if &lt; 12 months — check the SID)</li>';
+  html += '<li>The basis you entered matches the slice you\'re selling</li>';
+  html += '</ul></div>';
+
+  document.getElementById('sellResult').innerHTML = html;
+}
+
+function line(lbl, val, cls){
+  cls = cls || '';
+  return '<div class="calc-line ' + cls + '"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div></div>';
+}
+</script>
+
+<script src="artha-blur-mode.js"></script>
+<script src="artha-ai-drawer.js"></script>
+</body>
+</html>

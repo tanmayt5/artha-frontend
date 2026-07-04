@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artha Screener — Find Multi-Baggers Before the Crowd</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#0A1E13;--forest-mid:#1A3A2A;--forest-card:rgba(18,42,28,0.6);
+  --gold:#C9952E;--gold-mid:#D4A843;--gold-glow:rgba(201,149,46,0.15);
+  --glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.07);--glass-h:rgba(255,255,255,0.09);
+  --t1:rgba(255,255,255,0.93);--t2:rgba(255,255,255,0.58);--t3:rgba(255,255,255,0.32);--t4:rgba(255,255,255,0.12);
+  --ok:#2DD4A0;--err:#F07070;--info:#60A5FA;--warn:#FBBF24;
+  --fd:'Cormorant Garamond',Georgia,serif;
+  --fb:'Inter',system-ui,sans-serif;
+  --fm:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fb);background:var(--forest);color:var(--t1);overflow-x:hidden;}
+
+/* CURSOR */
+
+#particle-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.9;}
+body::before{content:'';position:fixed;inset:0;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;opacity:.5;}
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;}
+.orb1{width:600px;height:600px;background:rgba(201,149,46,.05);top:-180px;right:-100px;animation:ob 22s ease-in-out infinite;}
+.orb2{width:450px;height:450px;background:rgba(26,58,42,.4);bottom:-80px;left:-60px;animation:ob 18s 7s ease-in-out infinite;}
+@keyframes ob{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-15px) scale(1.06);}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:66px;background:rgba(10,30,19,.6);backdrop-filter:blur(28px);border-bottom:1px solid var(--glass-b);transition:background .4s;}
+nav.scrolled{background:rgba(10,30,19,.94);}
+.logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;}
+.logo-sym{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(201,149,46,.18),rgba(201,149,46,.04));border:1px solid rgba(201,149,46,.28);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.95rem;color:var(--gold-mid);font-weight:600;}
+.logo-word{font-family:var(--fd);font-size:1.45rem;font-weight:600;color:var(--t1);letter-spacing:-.5px;}
+.logo-word span{color:var(--gold);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:2rem;}
+.nav-links a{font-size:.8rem;color:var(--t2);text-decoration:none;transition:color .2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--t1);}
+.nav-cta{background:rgba(201,149,46,.1);color:var(--gold-mid);border:1px solid rgba(201,149,46,.3);padding:.475rem 1.2rem;border-radius:100px;font-size:.8rem;font-weight:500;text-decoration:none;transition:all .2s;}
+
+/* PAGE LAYOUT */
+.page{padding:86px 3% 4rem;position:relative;z-index:2;}
+
+/* HERO */
+.screener-hero{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;gap:2rem;}
+.sh-left .badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(201,149,46,.08);border:1px solid rgba(201,149,46,.18);color:rgba(201,149,46,.8);font-size:.6rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:.3rem .8rem;border-radius:100px;margin-bottom:.85rem;}
+.sh-left h1{font-family:var(--fd);font-size:2.4rem;font-weight:300;line-height:1.15;margin-bottom:.5rem;}
+.sh-left h1 em{color:var(--gold);font-style:italic;}
+.sh-left p{font-size:.85rem;color:var(--t2);line-height:1.8;max-width:480px;}
+.sh-stats{display:flex;gap:1rem;flex-shrink:0;}
+.sh-stat{background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;padding:.85rem 1.2rem;text-align:center;}
+.sh-stat-val{font-family:var(--fm);font-size:1.1rem;color:var(--gold-mid);font-weight:500;}
+.sh-stat-lbl{font-size:.65rem;color:var(--t3);margin-top:.2rem;}
+
+/* AI SEARCH */
+.ai-search-wrap{margin-bottom:1.5rem;}
+.ai-search-box{background:var(--forest-card);border:1px solid var(--glass-b);border-radius:16px;padding:1rem 1.25rem;backdrop-filter:blur(20px);transition:border-color .3s;}
+.ai-search-box:focus-within{border-color:rgba(201,149,46,.4);}
+.ai-search-row{display:flex;align-items:center;gap:.85rem;}
+.ai-icon{width:32px;height:32px;border-radius:9px;background:var(--gold-glow);border:1px solid rgba(201,149,46,.25);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.ai-input{flex:1;background:transparent;border:none;color:var(--t1);font-family:var(--fb);font-size:.9rem;outline:none;}
+.ai-input::placeholder{color:var(--t3);}
+.ai-btn{background:linear-gradient(135deg,var(--gold),#B8892A);color:#0D1409;border:none;padding:.55rem 1.2rem;border-radius:100px;font-size:.78rem;font-weight:600;transition:all .25s;white-space:nowrap;}
+.ai-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,149,46,.3);}
+.ai-chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem;}
+.ai-chip{background:var(--glass);border:1px solid var(--glass-b);border-radius:100px;padding:.3rem .75rem;font-size:.72rem;color:var(--t2);transition:all .2s;}
+.ai-chip:hover{background:var(--glass-h);color:var(--t1);border-color:rgba(201,149,46,.2);}
+
+/* AI RESPONSE */
+.ai-response{background:rgba(201,149,46,.05);border:1px solid rgba(201,149,46,.15);border-radius:12px;padding:1rem 1.25rem;margin-top:.85rem;display:none;font-size:.83rem;color:var(--t2);line-height:1.75;}
+.ai-response.show{display:block;}
+.ai-response strong{color:var(--gold-mid);}
+.ai-thinking{display:flex;align-items:center;gap:.6rem;font-family:var(--fm);font-size:.75rem;color:var(--t3);}
+.ai-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 1.2s ease-in-out infinite;}
+.ai-dot:nth-child(2){animation-delay:.2s;}
+.ai-dot:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8);}50%{opacity:1;transform:scale(1.2);}}
+
+/* SCREENER LAYOUT */
+.screener-layout{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start;}
+
+/* FILTER PANEL */
+.filter-panel{background:var(--forest-card);border:1px solid var(--glass-b);border-radius:20px;padding:1.5rem;backdrop-filter:blur(20px);position:sticky;top:80px;}
+.fp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+.fp-title{font-family:var(--fd);font-size:1.1rem;font-weight:600;}
+.fp-reset{font-size:.72rem;color:var(--gold-mid);background:none;border:none;padding:.2rem .5rem;}
+.fp-reset:hover{opacity:.8;}
+.fp-section{margin-bottom:1.25rem;}
+.fp-section-title{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--t3);font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem;}
+.fp-section-title::after{content:'';flex:1;height:1px;background:var(--t4);}
+.filter-row{margin-bottom:.85rem;}
+.filter-label{display:flex;justify-content:space-between;font-size:.75rem;color:var(--t2);margin-bottom:.4rem;}
+.filter-val{font-family:var(--fm);font-size:.72rem;color:var(--gold-mid);}
+.filter-input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--glass-b);border-radius:8px;padding:.5rem .75rem;color:var(--t1);font-family:var(--fm);font-size:.8rem;outline:none;transition:border-color .2s;}
+.filter-input:focus{border-color:rgba(201,149,46,.4);}
+input[type=range].filter-range{background:transparent;border:none;padding:0;accent-color:var(--gold);}
+.range-labels{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.62rem;color:var(--t3);margin-top:.15rem;}
+.filter-select{width:100%;background:rgba(18,42,28,.8);border:1px solid var(--glass-b);border-radius:8px;padding:.5rem .75rem;color:var(--t1);font-size:.8rem;outline:none;}
+.filter-select option{background:#1A3A2A;}
+.filter-checkrow{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;font-size:.78rem;color:var(--t2);}
+.filter-checkrow input[type=checkbox]{accent-color:var(--gold);width:14px;height:14px;}
+.screen-btn{width:100%;background:linear-gradient(135deg,var(--gold),#B8892A);color:#0D1409;border:none;padding:.8rem;border-radius:12px;font-size:.85rem;font-weight:600;margin-top:.5rem;transition:all .25s;}
+.screen-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(201,149,46,.3);}
+
+/* PRESET BUTTONS */
+.preset-row{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.85rem;}
+.preset-btn{background:var(--glass);border:1px solid var(--glass-b);border-radius:100px;padding:.3rem .7rem;font-size:.68rem;color:var(--t2);transition:all .2s;}
+.preset-btn:hover,.preset-btn.active{background:rgba(201,149,46,.1);border-color:rgba(201,149,46,.3);color:var(--gold-mid);}
+
+/* RESULTS AREA */
+.results-area{}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.results-count{font-family:var(--fm);font-size:.8rem;color:var(--t3);}
+.results-count span{color:var(--gold-mid);}
+.sort-row{display:flex;align-items:center;gap:.5rem;}
+.sort-label{font-size:.72rem;color:var(--t3);}
+.sort-select{background:var(--glass);border:1px solid var(--glass-b);border-radius:8px;padding:.35rem .75rem;color:var(--t2);font-size:.75rem;outline:none;}
+.sort-select option{background:#1A3A2A;}
+
+/* TABLE */
+.stock-table-wrap{overflow-x:auto;}
+.stock-table{width:100%;border-collapse:collapse;}
+.stock-table th{padding:.7rem .85rem;text-align:left;font-size:.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:600;border-bottom:1px solid var(--t4);white-space:nowrap;}
+.stock-table th.sort-active{color:var(--gold-mid);}
+.stock-table th .sort-arrow{font-size:.55rem;margin-left:.3rem;}
+.stock-table td{padding:.85rem;font-size:.82rem;color:var(--t2);border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;white-space:nowrap;}
+.stock-table tr{transition:background .15s;}
+.stock-table tr:hover td{background:var(--glass);cursor:pointer!important;}
+.stock-table tr:last-child td{border-bottom:none;}
+
+/* TICKER */
+.ticker-cell{display:flex;align-items:center;gap:.65rem;}
+.ticker-logo{width:32px;height:32px;border-radius:9px;background:var(--glass-b);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;font-family:var(--fm);color:var(--gold-mid);flex-shrink:0;}
+.ticker-name{font-weight:500;color:var(--t1);font-size:.82rem;}
+.ticker-sym{font-family:var(--fm);font-size:.65rem;color:var(--t3);}
+.ticker-sector{font-size:.65rem;color:var(--t3);margin-top:.1rem;}
+
+/* DNA SCORE */
+.dna-score{display:flex;align-items:center;gap:.5rem;}
+.dna-badge{padding:.25rem .6rem;border-radius:100px;font-family:var(--fm);font-size:.72rem;font-weight:600;display:inline-flex;align-items:center;gap:.3rem;}
+.dna-s{background:rgba(45,212,160,0.10);color:var(--ok);border:1px solid rgba(45,212,160,0.22);}
+.dna-a{background:rgba(96,165,250,.1);color:var(--info);border:1px solid rgba(96,165,250,.2);}
+.dna-b{background:rgba(251,191,36,.1);color:var(--warn);border:1px solid rgba(251,191,36,.2);}
+.dna-c{background:rgba(240,112,112,.08);color:var(--err);border:1px solid rgba(240,112,112,.15);}
+
+/* METRIC CELLS */
+.pos{color:var(--ok);}
+.neg{color:var(--err);}
+.neu{color:var(--t2);}
+.mono{font-family:var(--fm);}
+
+/* MINI BARS */
+.mini-bar-wrap{display:flex;align-items:center;gap:.5rem;}
+.mini-bar{height:4px;border-radius:2px;background:var(--t4);width:60px;overflow:hidden;}
+.mini-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold-mid));}
+
+/* TAGS */
+.flag-tag{font-size:.62rem;padding:.18rem .5rem;border-radius:100px;background:rgba(45,212,160,0.07);color:var(--ok);border:1px solid rgba(45,212,160,0.14);white-space:nowrap;}
+.flag-tag.warn{background:rgba(251,191,36,.08);color:var(--warn);border-color:rgba(251,191,36,.15);}
+.flag-tag.err{background:rgba(240,112,112,.06);color:var(--err);border-color:rgba(240,112,112,.12);}
+
+/* DETAIL DRAWER */
+.detail-drawer{display:none;padding:0 .85rem .85rem;background:rgba(18,42,28,.4);border-bottom:1px solid var(--t4);}
+.detail-drawer.open{display:table-row;}
+.drawer-inner{display:flex;gap:1.5rem;padding:1.25rem 0;}
+
+/* DNA RADAR */
+.radar-wrap{flex-shrink:0;width:180px;text-align:center;}
+.radar-title{font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem;}
+
+/* DETAIL METRICS */
+.detail-metrics{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;}
+.dm-item{background:var(--glass);border:1px solid var(--glass-b);border-radius:10px;padding:.7rem;}
+.dm-label{font-size:.62rem;color:var(--t3);margin-bottom:.3rem;}
+.dm-val{font-family:var(--fm);font-size:.88rem;color:var(--t1);font-weight:500;}
+.dm-trend{font-size:.65rem;margin-top:.2rem;}
+
+/* AI EXPLAIN BOX */
+.ai-explain{flex:1;min-width:220px;background:rgba(201,149,46,.04);border:1px solid rgba(201,149,46,.12);border-radius:12px;padding:1rem 1.1rem;}
+.aie-title{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold-mid);margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;}
+.aie-body{font-size:.8rem;color:var(--t2);line-height:1.75;}
+.aie-loading{display:flex;align-items:center;gap:.5rem;font-family:var(--fm);font-size:.72rem;color:var(--t3);}
+
+/* LOADING STATE */
+.loading-row td{text-align:center;padding:3rem;color:var(--t3);font-family:var(--fm);font-size:.8rem;}
+.load-dots{display:inline-flex;gap:.3rem;vertical-align:middle;margin-left:.5rem;}
+.ld{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 1.2s ease-in-out infinite;}
+.ld:nth-child(2){animation-delay:.2s;}
+.ld:nth-child(3){animation-delay:.4s;}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--t3);}
+.empty-state .es-icon{font-size:2.5rem;margin-bottom:1rem;}
+.empty-state h3{font-family:var(--fd);font-size:1.4rem;color:var(--t2);margin-bottom:.5rem;}
+.empty-state p{font-size:.82rem;line-height:1.7;}
+
+/* DISCLAIMER */
+.disclaimer{background:rgba(201,149,46,0.04);border:1px solid rgba(201,149,46,0.14);border-radius:10px;padding:.75rem 1rem;font-size:.72rem;color:var(--t3);margin-bottom:1.25rem;line-height:1.65;}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:1.5rem;}
+.pg-btn{width:32px;height:32px;border-radius:8px;background:var(--glass);border:1px solid var(--glass-b);color:var(--t2);font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.pg-btn:hover,.pg-btn.active{background:rgba(201,149,46,.1);border-color:rgba(201,149,46,.3);color:var(--gold-mid);}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--glass-b);border-radius:3px;}
+
+@media(max-width:960px){.screener-layout{grid-template-columns:1fr;}.filter-panel{position:static;}.sh-stats{display:none;}}
+
+/* Canonical NEW pill for nav (Day 22 nav sweep) */
+.nav-pill-new{font-family:'JetBrains Mono',monospace;font-size:0.5rem;letter-spacing:1.2px;color:#D4A843;background:rgba(201,149,46,0.1);border:1px solid rgba(201,149,46,0.3);padding:0.12rem 0.35rem;border-radius:100px;font-weight:500;margin-left:0.25rem;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav id="nav">
+  <a href="index.html" class="logo">
+    <div class="logo-sym">&#8377;</div>
+    <div class="logo-word">Artha<span>.</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="artha-portfolio.html">Portfolio</a>
+    <a href="artha-tax-simulator.html">Tax tools</a>
+    <a href="artha-screener.html" class="active">Screener</a>
+    <a href="artha-analysis.html">AI Analysis <span class="nav-pill-new">NEW</span></a>
+    <a href="artha-learn.html">Learn</a>
+    <a href="index.html#waitlist" class="nav-cta">Get early access &#8594;</a>
+  </div>
+</nav>
+
+<div class="page">
+  <!-- HERO -->
+  <div class="screener-hero">
+    <div class="sh-left">
+      <div class="badge">◆ NSE / BSE · Live Data</div>
+      <h1>Find multi-baggers<br><em>before the crowd.</em></h1>
+      <p>Institutional-grade filters. AI-powered thesis. Multi-Bagger DNA scoring — all in one place. This is the screen Dalal Street doesn't want you to have.</p>
+    </div>
+    <div class="sh-stats">
+      <div class="sh-stat"><div class="sh-stat-val" id="stat-total">—</div><div class="sh-stat-lbl">Stocks</div></div>
+      <div class="sh-stat"><div class="sh-stat-val" id="stat-match">—</div><div class="sh-stat-lbl">Matching</div></div>
+      <div class="sh-stat"><div class="sh-stat-val" id="stat-s-grade">—</div><div class="sh-stat-lbl">S-Grade DNA</div></div>
+      <div class="sh-stat"><div class="sh-stat-val" id="stat-updated">Live</div><div class="sh-stat-lbl">Data</div></div>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer" id="data-disclaimer"><span id="data-status-icon" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--t3);margin-right:.5rem;vertical-align:middle;"></span><span id="data-status-text">Connecting to live data source...</span></div>
+
+  <!-- AI SEARCH -->
+  <div class="ai-search-wrap">
+    <div class="ai-search-box">
+      <div class="ai-search-row">
+        <div class="ai-icon">✦</div>
+        <input class="ai-input" id="ai-query" placeholder="Describe what you're looking for... e.g. 'profitable small cap with low debt and promoter holding above 55%'" />
+        <button class="ai-btn" onclick="runAISearch()">Ask Artha AI</button>
+      </div>
+      <div class="ai-chips">
+        <button class="ai-chip" onclick="setAIQuery('Fundamentally strong mid caps with high ROCE and low debt')">Strong mid caps, low debt</button>
+        <button class="ai-chip" onclick="setAIQuery('Small cap multi-baggers with promoter holding above 55% and growing revenue')">Small cap multi-baggers</button>
+        <button class="ai-chip" onclick="setAIQuery('Undervalued large caps with consistent dividend growth')">Undervalued dividend payers</button>
+        <button class="ai-chip" onclick="setAIQuery('High growth companies with PE below sector average')">Growth at reasonable price</button>
+        <button class="ai-chip" onclick="setAIQuery('Debt free companies with improving return on equity')">Debt-free, improving ROE</button>
+      </div>
+    </div>
+    <div class="ai-response" id="ai-response"></div>
+  </div>
+
+  <!-- SCREENER LAYOUT -->
+  <div class="screener-layout">
+
+    <!-- FILTER PANEL -->
+    <div class="filter-panel">
+      <div class="fp-head">
+        <div class="fp-title">Filters</div>
+        <button class="fp-reset" onclick="resetFilters()">↺ Reset</button>
+      </div>
+
+      <div class="fp-section">
+        <div class="fp-section-title">Presets</div>
+        <div class="preset-row">
+          <button class="preset-btn" onclick="applyPreset('multibagger')">◆ Multi-Bagger DNA</button>
+          <button class="preset-btn" onclick="applyPreset('value')">Value Picks</button>
+          <button class="preset-btn" onclick="applyPreset('momentum')">Momentum</button>
+          <button class="preset-btn" onclick="applyPreset('quality')">Quality Growth</button>
+          <button class="preset-btn" onclick="applyPreset('smallcap')">Small Cap Stars</button>
+        </div>
+      </div>
+
+      <div class="fp-section">
+        <div class="fp-section-title">Basics</div>
+        <div class="filter-row">
+          <div class="filter-label"><span>Market Cap</span></div>
+          <select class="filter-select" id="f-mcap">
+            <option value="all">All</option>
+            <option value="large">Large Cap (₹20,000Cr+)</option>
+            <option value="mid">Mid Cap (₹5K–20K Cr)</option>
+            <option value="small">Small Cap (&lt;₹5,000Cr)</option>
+            <option value="micro">Micro Cap (&lt;₹500Cr)</option>
+          </select>
+        </div>
+        <div class="filter-row">
+          <div class="filter-label"><span>Sector</span></div>
+          <select class="filter-select" id="f-sector">
+            <option value="all">All Sectors</option>
+            <option value="Chemicals">Chemicals</option>
+            <option value="Energy">Energy</option>
+            <option value="Finance">Finance</option>
+            <option value="FMCG">FMCG</option>
+            <option value="IT">Information Technology</option>
+            <option value="Infrastructure">Infrastructure</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Metals">Metals & Mining</option>
+            <option value="Pharma">Pharma & Healthcare</option>
+            <option value="Power">Power & Utilities</option>
+            <option value="Renewables">Renewables</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fp-section">
+        <div class="fp-section-title">Valuation</div>
+        <div class="filter-row">
+          <div class="filter-label"><span>P/E Ratio Max</span><span class="filter-val" id="pe-val">60</span></div>
+          <input type="range" class="filter-range" id="f-pe" min="0" max="100" value="60" oninput="document.getElementById('pe-val').textContent=this.value;runScreen()">
+        </div>
+        <div class="filter-row">
+          <div class="filter-label"><span>P/B Ratio Max</span><span class="filter-val" id="pb-val">10</span></div>
+          <input type="range" class="filter-range" id="f-pb" min="0" max="20" value="10" oninput="document.getElementById('pb-val').textContent=this.value;runScreen()">
+        </div>
+      </div>
+
+      <div class="fp-section">
+        <div class="fp-section-title">Quality ◆</div>
+        <div class="filter-row">
+          <div class="filter-label"><span>Min Promoter Holding %</span><span class="filter-val" id="prom-val">0</span>%</div>
+          <input type="range" class="filter-range" id="f-prom" min="0" max="75" value="0" oninput="document.getElementById('prom-val').textContent=this.value;runScreen()">
+          <div class="range-labels"><span>0%</span><span>75%</span></div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-label"><span>Min ROCE %</span><span class="filter-val" id="roce-val">0</span>%</div>
+          <input type="range" class="filter-range" id="f-roce" min="0" max="40" value="0" oninput="document.getElementById('roce-val').textContent=this.value;runScreen()">
+        </div>
+        <div class="filter-row">
+          <div class="filter-label"><span>Max D/E Ratio</span><span class="filter-val" id="de-val">5.0</span></div>
+          <input type="range" class="filter-range" id="f-de" min="0" max="50" value="50" oninput="document.getElementById('de-val').textContent=(this.value/10).toFixed(1);runScreen()">
+        </div>
+        <div class="filter-checkrow"><input type="checkbox" id="f-debt-trend" onchange="runScreen()"><label for="f-debt-trend">Declining debt trajectory</label></div>
+        <div class="filter-checkrow"><input type="checkbox" id="f-prom-stable" onchange="runScreen()"><label for="f-prom-stable">Stable or increasing promoter hold</label></div>
+      </div>
+
+      <div class="fp-section">
+        <div class="fp-section-title">Growth</div>
+        <div class="filter-row">
+          <div class="filter-label"><span>Min Revenue Growth (YoY %)</span><span class="filter-val" id="rev-val">0</span>%</div>
+          <input type="range" class="filter-range" id="f-rev" min="0" max="50" value="0" oninput="document.getElementById('rev-val').textContent=this.value;runScreen()">
+        </div>
+        <div class="filter-row">
+          <div class="filter-label"><span>Min EPS Growth (YoY %)</span><span class="filter-val" id="eps-val">0</span>%</div>
+          <input type="range" class="filter-range" id="f-eps" min="0" max="50" value="0" oninput="document.getElementById('eps-val').textContent=this.value;runScreen()">
+        </div>
+      </div>
+
+      <div class="fp-section">
+        <div class="fp-section-title">DNA Score</div>
+        <div class="filter-row">
+          <div class="filter-label"><span>Min Multi-Bagger DNA Score</span></div>
+          <select class="filter-select" id="f-dna">
+            <option value="all">Any Grade</option>
+            <option value="S">S Grade only (Elite)</option>
+            <option value="SA">S + A Grade</option>
+            <option value="SAB">S + A + B Grade</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="screen-btn" onclick="runScreen()">⚡ Run Screen</button>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-area">
+      <div class="results-header">
+        <div class="results-count">Showing <span id="res-count">—</span> results</div>
+        <div class="sort-row">
+          <span class="sort-label">Sort:</span>
+          <select class="sort-select" id="sort-by" onchange="sortResults()">
+            <option value="dna">DNA Score ↓</option>
+            <option value="pe">P/E ↑</option>
+            <option value="roce">ROCE ↓</option>
+            <option value="mcap">Market Cap ↓</option>
+            <option value="rev">Revenue Growth ↓</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="stock-table-wrap">
+        <table class="stock-table" id="stock-table">
+          <thead>
+            <tr>
+              <th style="min-width:180px">Company</th>
+              <th>DNA Score</th>
+              <th>Mkt Cap</th>
+              <th>P/E</th>
+              <th>ROCE %</th>
+              <th>D/E</th>
+              <th>Promoter %</th>
+              <th>Rev Growth</th>
+              <th>Flags</th>
+            </tr>
+          </thead>
+          <tbody id="stock-tbody">
+            <tr class="loading-row"><td colspan="9">Loading data<span class="load-dots"><span class="ld"></span><span class="ld"></span><span class="ld"></span></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+  </div><!-- /screener-layout -->
+</div><!-- /page -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   ARTHA ANALYSER — Internal Equity Intelligence Engine
+   Tier 1: Rule-based scoring  |  Tier 2: Sector templates
+   No external API. Pure deterministic functions.
+   ═══════════════════════════════════════════════════════════ */
+
+(function(global){
+  'use strict';
+
+  // ─── DNA SCORING ENGINE ────────────────────────────────
+  // Returns total score (0-100) and component breakdown
+  function calcDNA(s){
+    var c = { promoter:0, debt:0, returns:0, growth:0, valuation:0 };
+
+    // Promoter conviction (max 25)
+    if(s.prom >= 50) c.promoter += 10;
+    if(s.prom >= 60) c.promoter += 8;
+    if(s.promTrend === 'increasing') c.promoter += 7;
+    else if(s.promTrend === 'stable') c.promoter += 3;
+
+    // Debt trajectory (max 20)
+    if(s.de <= 0.3) c.debt += 12;
+    else if(s.de <= 1.0) c.debt += 6;
+    else if(s.de <= 2.0) c.debt += 2;
+    if(s.debtTrend === 'declining') c.debt += 8;
+    else if(s.debtTrend === 'stable') c.debt += 3;
+
+    // Return on capital (max 25)
+    if(s.roce >= 30) c.returns += 25;
+    else if(s.roce >= 20) c.returns += 18;
+    else if(s.roce >= 15) c.returns += 10;
+    else if(s.roce >= 10) c.returns += 4;
+
+    // Growth quality (max 20)
+    if(s.epsGrowth >= 40) c.growth += 12;
+    else if(s.epsGrowth >= 20) c.growth += 7;
+    else if(s.epsGrowth >= 10) c.growth += 3;
+    if(s.revGrowth >= 30) c.growth += 8;
+    else if(s.revGrowth >= 15) c.growth += 4;
+
+    // Valuation sanity (max 10)
+    if(s.pe > 0 && s.pe <= 15) c.valuation += 10;
+    else if(s.pe <= 30) c.valuation += 6;
+    else if(s.pe <= 50) c.valuation += 2;
+
+    var total = c.promoter + c.debt + c.returns + c.growth + c.valuation;
+    var grade = total >= 75 ? 'S' : total >= 55 ? 'A' : total >= 35 ? 'B' : 'C';
+
+    return { total: total, grade: grade, components: c };
+  }
+
+  // ─── BULL CASE RULES ───────────────────────────────────
+  function bullPoints(s){
+    var pts = [];
+
+    if(s.roce >= 25) pts.push('Exceptional ROCE of ' + s.roce + '% — well above the 20% institutional quality threshold');
+    else if(s.roce >= 18) pts.push('Strong ROCE of ' + s.roce + '% indicates efficient capital deployment');
+
+    if(s.de <= 0.1) pts.push('Effectively debt-free (D/E ' + s.de + ') — no interest burden, full pricing power');
+    else if(s.de <= 0.5 && s.debtTrend === 'declining') pts.push('Low debt (D/E ' + s.de + ') with declining trajectory — balance sheet de-risking in progress');
+
+    if(s.prom >= 65) pts.push('High promoter holding at ' + s.prom + '% — strong alignment with minority shareholders');
+    if(s.promTrend === 'increasing') pts.push('Promoter buying signals insider confidence — typically a strong leading indicator');
+
+    if(s.epsGrowth >= 40) pts.push('EPS growth of ' + s.epsGrowth + '% YoY — earnings compounding at exceptional rate');
+    else if(s.epsGrowth >= 25) pts.push('Robust EPS growth of ' + s.epsGrowth + '% YoY supports re-rating thesis');
+
+    if(s.revGrowth >= 30 && s.epsGrowth > s.revGrowth) pts.push('Operating leverage at work — earnings growing faster than revenue (' + s.epsGrowth + '% vs ' + s.revGrowth + '%)');
+
+    if(s.pe > 0 && s.pe <= 12 && s.roce >= 15) pts.push('Trading at just ' + s.pe + 'x earnings despite ' + s.roce + '% ROCE — classic value gap');
+
+    if(pts.length === 0) pts.push('Stock metrics suggest a wait-and-watch approach; await better entry or fundamental improvement');
+    return pts.slice(0, 3);
+  }
+
+  // ─── BEAR / RISK RULES ─────────────────────────────────
+  function bearPoints(s){
+    var pts = [];
+
+    if(s.pe > 50) pts.push('Rich valuation at ' + s.pe + 'x earnings prices in significant growth — execution risk is high');
+    else if(s.pe > 35 && s.epsGrowth < 25) pts.push('PE of ' + s.pe + 'x demands EPS growth beyond current ' + s.epsGrowth + '% — re-rating risk');
+
+    if(s.de > 1.5) pts.push('Elevated leverage (D/E ' + s.de + ') exposes earnings to rate cycle and refinancing risk');
+    else if(s.de > 0.8 && s.debtTrend === 'increasing') pts.push('Rising debt trajectory needs monitoring against interest coverage');
+
+    if(s.promTrend === 'declining') pts.push('Promoter selling is a yellow flag — verify reason before adding');
+    else if(s.prom < 35) pts.push('Low promoter holding at ' + s.prom + '% — weaker insider alignment');
+
+    if(s.roce < 12) pts.push('Sub-par ROCE of ' + s.roce + '% suggests structural margin issues or asset-heavy model');
+
+    if(s.revGrowth < 10 && s.epsGrowth < 10) pts.push('Growth has stalled (Rev ' + s.revGrowth + '%, EPS ' + s.epsGrowth + '%) — wait for re-acceleration');
+
+    if(s.pb > 8 && s.roce < 25) pts.push('PB of ' + s.pb + 'x is rich relative to ' + s.roce + '% ROCE — book value premium unjustified');
+
+    if(pts.length === 0) pts.push('Always size position appropriately — even high-quality names can de-rate on macro or sector rotation');
+    return pts.slice(0, 3);
+  }
+
+  // ─── VALUATION COMMENT ─────────────────────────────────
+  function valuationComment(s){
+    if(s.pe <= 0) return 'Loss-making — earnings multiple not meaningful';
+    if(s.pe <= 12) return 'Deep value zone at ' + s.pe + 'x — verify earnings sustainability and not a value trap';
+    if(s.pe <= 20) return 'Reasonable at ' + s.pe + 'x — fair price for the quality on display';
+    if(s.pe <= 35) return 'Growth premium at ' + s.pe + 'x — justified if EPS growth holds above 20%';
+    if(s.pe <= 60) return 'Rich at ' + s.pe + 'x — pricing in multi-year compounding; tight margin for error';
+    return 'Extreme valuation at ' + s.pe + 'x — momentum-driven; fundamentals must catch up significantly';
+  }
+
+  // ─── SECTOR TEMPLATES (Tier 2) ─────────────────────────
+  // Parameterised theses per sector. Slots filled from data.
+  var SECTOR_TEMPLATES = {
+
+    'Metals': function(s){
+      var tone = s.roce >= 20 ? 'high-quality' : s.roce >= 12 ? 'cyclical-quality' : 'commodity-driven';
+      return 'Integrated metals & alloys play with ' + tone + ' characteristics. ROCE of ' + s.roce + '% reflects ' + 
+        (s.roce >= 20 ? 'captive raw material advantage and operational leverage.' : 'sensitivity to commodity cycle.') +
+        ' Capital structure (D/E ' + s.de + ', ' + s.debtTrend + ') is ' +
+        (s.de <= 0.5 ? 'a competitive moat in a capex-heavy sector.' : 'a key variable to track through the cycle.') +
+        ' Promoter at ' + s.prom + '% (' + s.promTrend + ') ' +
+        (s.prom >= 60 && s.promTrend !== 'declining' ? 'signals long-term commitment.' : 'warrants attention to capital allocation decisions.');
+    },
+
+    'Chemicals': function(s){
+      return 'Specialty/agro chemicals positioning with ROCE of ' + s.roce + '% — ' +
+        (s.roce >= 20 ? 'top-decile capital efficiency in the sector.' : 'in line with broad sector.') +
+        ' Revenue growth of ' + s.revGrowth + '% reflects ' +
+        (s.revGrowth >= 20 ? 'strong end-market demand and possible market share gains.' : 'steady demand environment.') +
+        ' D/E at ' + s.de + ' (' + s.debtTrend + ') and ' + s.prom + '% promoter holding shape the risk-reward setup. ' +
+        (s.pe <= 15 ? 'Valuation at ' + s.pe + 'x is attractive vs sector premium.' : 'Premium valuation reflects market confidence in the growth runway.');
+    },
+
+    'IT': function(s){
+      return 'IT services / electronics manufacturing exposure with ' + s.roce + '% ROCE — ' +
+        (s.roce >= 35 ? 'world-class capital efficiency.' : s.roce >= 20 ? 'healthy sector returns.' : 'below sector leaders.') +
+        ' ' + (s.de <= 0.1 ? 'Debt-free balance sheet is the norm for this sector and well maintained here.' : 'D/E of ' + s.de + ' is unusual for IT — verify expansion rationale.') +
+        ' Revenue growth at ' + s.revGrowth + '% ' +
+        (s.revGrowth < 10 ? 'reflects current sector headwinds from AI/offshore rate pressure.' : 'indicates strong client demand and execution.') +
+        ' Promoter at ' + s.prom + '% (' + s.promTrend + ') aligns long-term thinking.';
+    },
+
+    'Power': function(s){
+      return 'Power infrastructure / T&D play benefiting from India\'s grid modernisation cycle. ROCE of ' + s.roce + '% ' +
+        (s.roce >= 20 ? 'demonstrates strong project execution and asset turnover.' : 'reflects the capital-intensive nature of power assets.') +
+        ' D/E at ' + s.de + ' (' + s.debtTrend + ') ' +
+        (s.de <= 0.3 ? 'is exceptional for the sector — significant competitive advantage.' : 'is typical for the sector; debt servicing capacity is the key metric.') +
+        ' Revenue growth of ' + s.revGrowth + '% ' +
+        (s.revGrowth >= 25 ? 'mirrors the national capex cycle acceleration.' : 'tracks orderbook execution.');
+    },
+
+    'Renewables': function(s){
+      return 'Renewable energy exposure (solar/wind/storage) — riding India\'s 500GW renewables target. EPS growth of ' + s.epsGrowth + '% ' +
+        (s.epsGrowth >= 50 ? 'is in hypergrowth territory; verify margin sustainability.' : 'reflects strong order conversion.') +
+        ' Revenue growth at ' + s.revGrowth + '% indicates ' +
+        (s.revGrowth >= 40 ? 'capacity ramp and demand absorption working in tandem.' : 'steady commercial scaling.') +
+        ' ' + (s.de >= 1.0 ? 'Debt at D/E ' + s.de + ' is high but typical for capex phase; track productivity of incremental capital.' : 'D/E ' + s.de + ' is conservative for a growth-phase company.') +
+        ' Valuation at ' + s.pe + 'x prices in significant continued execution.';
+    },
+
+    'Finance': function(s){
+      return 'Financial services franchise with ROE/ROCE of ' + s.roce + '% ' +
+        (s.roce >= 15 ? 'reflecting healthy spreads and asset quality.' : 'below sector leaders — examine NIM and credit cost trajectory.') +
+        ' Loan/asset growth at ' + s.revGrowth + '% ' +
+        (s.revGrowth >= 15 ? 'outpaces system growth — market share gains underway.' : 'tracks system credit growth.') +
+        ' Note: D/E is structurally high for financials (here ' + s.de + ') and not directly comparable to non-financials. Promoter at ' + s.prom + '% ' +
+        (s.prom === 0 ? 'is institutionally widely-held (common for top-tier private banks).' : 'reflects promoter-driven entity dynamics.');
+    },
+
+    'FMCG': function(s){
+      return 'Consumer-facing franchise with ' + s.roce + '% ROCE — ' +
+        (s.roce >= 25 ? 'strong brand equity and pricing power.' : 'reflects either growth investment phase or commodity input pressure.') +
+        ' Revenue growth at ' + s.revGrowth + '% ' +
+        (s.revGrowth >= 20 ? 'indicates strong consumer traction; likely market share gains.' : 'reflects steady consumption demand.') +
+        ' D/E at ' + s.de + ' is ' +
+        (s.de <= 0.5 ? 'comfortable for the cash-generative nature of consumer businesses.' : 'elevated for FMCG — verify expansion/working capital rationale.') +
+        ' At ' + s.pe + 'x, valuation ' +
+        (s.pe >= 40 ? 'demands sustained premium growth.' : 'is in reasonable consumer staple range.');
+    },
+
+    'Infrastructure': function(s){
+      return 'Infrastructure execution play benefiting from India\'s ₹100L Cr+ capex pipeline through 2030. ROCE of ' + s.roce + '% ' +
+        (s.roce >= 18 ? 'is exceptional for the sector and points to disciplined project selection.' : 'is typical for capital-intensive infra.') +
+        ' Order book visibility and execution discipline matter more than P&L snapshots — promoter at ' + s.prom + '% (' + s.promTrend + ') ' +
+        (s.promTrend !== 'declining' ? 'aligns long-term thinking.' : 'warrants extra scrutiny in this sector.') +
+        ' D/E of ' + s.de + ' (' + s.debtTrend + ') ' +
+        (s.de <= 0.5 ? 'is below sector norm — a quality signal.' : 'is in line with project finance norms.');
+    },
+
+    'Energy': function(s){
+      return 'Energy / conglomerate exposure with ROCE of ' + s.roce + '%. ' +
+        (s.roce < 15 ? 'Sub-15% ROCE reflects asset-heavy nature; conglomerate parts may individually be much higher quality.' : 'Healthy returns for capital intensity.') +
+        ' SOTP analysis often more meaningful than headline multiples for conglomerates. ' +
+        'Revenue growth of ' + s.revGrowth + '% blends cash-cow segments with optionality-led new businesses. ' +
+        (s.de <= 0.6 ? 'Balance sheet at D/E ' + s.de + ' supports capex flexibility.' : 'D/E ' + s.de + ' reflects ongoing transformation investments.');
+    },
+
+    'Manufacturing': function(s){
+      return 'Manufacturing / capital goods exposure to India\'s industrial capex cycle. ROCE of ' + s.roce + '% ' +
+        (s.roce >= 25 ? 'is top-decile for the sector — operational excellence on display.' : 'reflects scale economics and operational discipline.') +
+        ' Promoter at ' + s.prom + '% (' + s.promTrend + ') ' +
+        (s.prom >= 60 ? 'shows high conviction; promoter-led capital allocation matters most in this segment.' : 'is moderate — track strategic decisions closely.') +
+        ' D/E of ' + s.de + ' ' +
+        (s.de <= 0.3 ? 'is exceptional — manufacturing without leverage is a quality marker.' : 'is in line with sector norms.') +
+        ' At ' + s.pe + 'x, valuation ' + (s.pe >= 40 ? 'prices in confidence in capex super-cycle.' : 'looks reasonable on sector multiples.');
+    }
+  };
+
+  // Default fallback for any uncovered sector
+  function defaultTemplate(s){
+    return 'Generic equity profile with ' + s.roce + '% ROCE, D/E of ' + s.de + ', and ' + s.prom + '% promoter holding. ' +
+      'Revenue growth at ' + s.revGrowth + '% and EPS growth at ' + s.epsGrowth + '%. ' +
+      'Valuation of ' + s.pe + 'x earnings ' + (s.pe <= 20 ? 'looks reasonable.' : 'reflects market premium.') +
+      ' Standard due diligence applies — verify quarterly trends and management commentary.';
+  }
+
+  // ─── MAIN ANALYSE FUNCTION ─────────────────────────────
+  function analyse(s){
+    var dna = calcDNA(s);
+    var tmpl = SECTOR_TEMPLATES[s.sector] || defaultTemplate;
+    var thesis = tmpl(s);
+    var bull = bullPoints(s);
+    var bear = bearPoints(s);
+    var val = valuationComment(s);
+
+    return {
+      dnaScore: dna.total,
+      grade: dna.grade,
+      components: dna.components,
+      thesis: thesis,
+      bullPoints: bull,
+      bearPoints: bear,
+      valuationComment: val,
+      sector: s.sector,
+      // Standard summary one-liner
+      summary: bull[0] + ' Key risk: ' + bear[0].toLowerCase() + (bear[0].endsWith('.') ? '' : '.')
+    };
+  }
+
+  // ─── EXPORT ────────────────────────────────────────────
+  global.ArthaAnalyser = {
+    analyse: analyse,
+    calcDNA: calcDNA,
+    bullPoints: bullPoints,
+    bearPoints: bearPoints,
+    valuationComment: valuationComment,
+    version: '1.0.0'
+  };
+
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ══════════════════════════════════════════
+// STOCK DATABASE (realistic demo data)
+// Real app: replace with Yahoo Finance API
+// ══════════════════════════════════════════
+var STOCKS = [
+  {sym:'CHAMBL',name:'Chambal Fertilizers',sector:'Chemicals',mcap:16800,pe:8.2,pb:1.4,roce:22.1,de:0.3,prom:60.5,promTrend:'stable',debtTrend:'declining',revGrowth:14.2,epsGrowth:28.5,dnaScore:'S',flags:['Low D/E','High ROCE'],thesis:'Capital allocation powerhouse in agrochemicals with improving margins post-urea pricing reform. Promoter hold stable above 60%.'},
+  {sym:'SARDAEN',name:'Sarda Energy & Minerals',sector:'Metals',mcap:4200,pe:5.8,pb:0.9,roce:19.4,de:0.4,prom:72.1,promTrend:'increasing',debtTrend:'declining',revGrowth:21.3,epsGrowth:34.1,dnaScore:'S',flags:['Low P/E','High Promoter'],thesis:'Integrated steel-power player with captive coal advantage. High promoter conviction + debt reduction cycle makes this a textbook multi-bagger setup.'},
+  {sym:'POWERMEC',name:'Power Mech Projects',sector:'Infrastructure',mcap:3600,pe:16.4,pb:2.8,roce:24.6,de:0.1,prom:59.3,promTrend:'stable',debtTrend:'stable',revGrowth:31.5,epsGrowth:42.2,dnaScore:'S',flags:['Debt Free','Order Backlog'],thesis:'Engineering services play riding India\'s power capex supercycle. Near-zero debt, high ROCE, and visible 3-year revenue backlog.'},
+  {sym:'MAITHAN',name:'Maithan Alloys',sector:'Metals',mcap:2100,pe:7.2,pb:1.1,roce:31.2,de:0.0,prom:73.8,promTrend:'increasing',debtTrend:'declining',revGrowth:18.7,epsGrowth:25.4,dnaScore:'S',flags:['Debt Free','ROCE>30%'],thesis:'Near-monopoly in ferro manganese with pricing power. Debt-free balance sheet, exceptional ROCE, and promoter buybacks signal extreme confidence.'},
+  {sym:'KPIGREEN',name:'KPI Green Energy',sector:'Renewables',mcap:5800,pe:28.3,pb:5.2,roce:18.9,de:0.8,prom:61.2,promTrend:'stable',debtTrend:'increasing',revGrowth:68.4,epsGrowth:91.2,dnaScore:'A',flags:['Hypergrowth','Capex Phase'],thesis:'Best-in-class C&I solar developer with IPP + EPC model. Revenue nearly doubling; debt rising but productively deployed. Premium valuation justified by growth.'},
+  {sym:'EMMVEE',name:'Emmvee Photovoltaic',sector:'Renewables',mcap:1900,pe:18.6,pb:3.1,roce:22.4,de:0.5,prom:68.4,promTrend:'stable',debtTrend:'stable',revGrowth:45.2,epsGrowth:62.1,dnaScore:'A',flags:['Solar Manufacturer','FY26 Beat'],thesis:'Solar module manufacturer with vertical integration advantage. Riding domestic PLI tailwinds with FY26 results beating estimates across the board.'},
+  {sym:'ADVAITRNS',name:'Advait Energy Transitions',sector:'Power',mcap:1400,pe:22.1,pb:4.6,roce:27.3,de:0.2,prom:55.6,promTrend:'stable',debtTrend:'declining',revGrowth:38.9,epsGrowth:55.3,dnaScore:'A',flags:['T&D Play','Power Infra'],thesis:'Transmission & distribution infrastructure beneficiary. India\'s grid modernization spend is a decade-long tailwind. Lean balance sheet, improving margins.'},
+  {sym:'TECHNO',name:'Techno Electric & Engg',sector:'Power',mcap:8700,pe:34.2,pb:5.8,roce:20.1,de:0.0,prom:52.4,promTrend:'stable',debtTrend:'stable',revGrowth:22.6,epsGrowth:29.8,dnaScore:'A',flags:['Debt Free','Power EPC'],thesis:'Debt-free EPC company with power transmission focus. Strong execution track record and improving order pipeline from the national grid upgrade program.'},
+  {sym:'KALYANKJ',name:'Kalyan Jewellers',sector:'FMCG',mcap:22400,pe:41.3,pb:7.2,roce:14.2,de:1.2,prom:62.8,promTrend:'stable',debtTrend:'stable',revGrowth:28.4,epsGrowth:35.6,dnaScore:'B',flags:['Franchise Growth','Pan-India'],thesis:'India\'s fastest-growing organised jeweller with franchise-led (FOCO) model reducing capital intensity. Southern stronghold expanding north aggressively.'},
+  {sym:'AGIGREEN',name:'AGI Greenpac',sector:'Manufacturing',mcap:3100,pe:14.8,pb:2.3,roce:16.8,de:0.7,prom:56.2,promTrend:'stable',debtTrend:'declining',revGrowth:12.3,epsGrowth:18.1,dnaScore:'B',flags:['Glass Packaging','Consumer Proxy'],thesis:'Only listed glass packaging company in India. Infrastructure moat in glass manufacturing, consumer staples demand insulation, capacity expansion underway.'},
+  {sym:'SKIPPER',name:'Skipper Ltd',sector:'Infrastructure',mcap:2700,pe:19.4,pb:3.6,roce:15.3,de:0.9,prom:53.8,promTrend:'stable',debtTrend:'declining',revGrowth:26.7,epsGrowth:38.4,dnaScore:'B',flags:['Transmission Tower','Export Orders'],thesis:'Transmission tower manufacturer with growing export order book. Beneficiary of both domestic power grid buildout and international infrastructure demand.'},
+  {sym:'IMFA',name:'Indian Metals & Ferro Alloys',sector:'Metals',mcap:3400,pe:6.9,pb:1.2,roce:17.6,de:0.2,prom:54.7,promTrend:'stable',debtTrend:'declining',revGrowth:9.8,epsGrowth:12.3,dnaScore:'B',flags:['Low P/E','Captive Power'],thesis:'Captive power advantage in ferro alloys production. Low valuation despite consistent profitability. Debt reduction trend supports re-rating potential.'},
+  {sym:'ACE',name:'Action Construction Equipment',sector:'Manufacturing',mcap:7900,pe:26.4,pb:5.1,roce:28.7,de:0.1,prom:63.2,promTrend:'increasing',debtTrend:'stable',revGrowth:34.1,epsGrowth:47.6,dnaScore:'A',flags:['Infrastructure Proxy','Market Leader'],thesis:'Dominant crane & construction equipment maker riding India\'s infra boom. Strong promoter conviction + 28%+ ROCE with near-zero debt is exceptional quality.'},
+  {sym:'INOXWIND',name:'Inox Wind',sector:'Renewables',mcap:9200,pe:45.2,pb:8.4,roce:11.4,de:1.8,prom:60.4,promTrend:'stable',debtTrend:'stable',revGrowth:82.1,epsGrowth:112.4,dnaScore:'B',flags:['Wind Energy','Order Explosion'],thesis:'Wind turbine manufacturer with order book explosion as India targets 100GW wind. High debt and valuation are risks; but growth trajectory justifies premium.'},
+  {sym:'DEEPAKFERT',name:'Deepak Fertilisers',sector:'Chemicals',mcap:6800,pe:11.3,pb:1.6,roce:18.4,de:0.6,prom:51.2,promTrend:'stable',debtTrend:'declining',revGrowth:8.4,epsGrowth:15.7,dnaScore:'B',flags:['TAN Expansion','Fertiliser'],thesis:'Technical Ammonium Nitrate capacity expansion creates industrial chemicals optionality beyond fertilizer. Debt declining, margins expanding.'},
+  {sym:'ANANTRAJ',name:'Anant Raj',sector:'Infrastructure',mcap:11200,pe:38.6,pb:4.2,roce:8.3,de:0.4,prom:47.8,promTrend:'declining',debtTrend:'stable',revGrowth:42.3,epsGrowth:28.1,dnaScore:'C',flags:['Low ROCE','Promoter Dip'],thesis:'Data centre + real estate play but ROCE remains disappointing below 10%. Promoter holding dipping is a yellow flag. Monitor closely before adding.'},
+  {sym:'KAYNES',name:'Kaynes Technology',sector:'IT',mcap:18600,pe:78.4,pb:12.6,roce:14.2,de:0.3,prom:54.6,promTrend:'stable',debtTrend:'stable',revGrowth:45.6,epsGrowth:58.3,dnaScore:'B',flags:['EMS Leader','IoT Growth'],thesis:'Leading Electronics Manufacturing Services company. Rich valuation bakes in India\'s semiconductor/electronics PLI opportunity. Quality biz, patience needed.'},
+  {sym:'TCS',name:'Tata Consultancy Services',sector:'IT',mcap:1462000,pe:27.4,pb:14.8,roce:48.2,de:0.0,prom:72.3,promTrend:'stable',debtTrend:'stable',revGrowth:4.2,epsGrowth:7.8,dnaScore:'A',flags:['Debt Free','High ROCE','Dividend'],thesis:'Compounding machine. Low growth near-term on AI/offshoring headwinds but fortress balance sheet, 48% ROCE, and Tata Group backing make this a permanent hold.'},
+  {sym:'HDFCBANK',name:'HDFC Bank',sector:'Finance',mcap:1287000,pe:18.6,pb:2.4,roce:16.8,de:8.2,prom:0.0,promTrend:'stable',debtTrend:'stable',revGrowth:16.3,epsGrowth:12.4,dnaScore:'A',flags:['Banking Leader','Post-Merger'],thesis:'India\'s most admired private bank navigating a post-merger transition. NIM compression is temporary; long-term franchise value is intact and undervalued here.'},
+  {sym:'RELIANCE',name:'Reliance Industries',sector:'Energy',mcap:1780000,pe:24.8,pb:2.1,roce:10.4,de:0.5,prom:50.3,promTrend:'stable',debtTrend:'stable',revGrowth:7.2,epsGrowth:4.6,dnaScore:'B',flags:['Jio IPO Watch','Conglomerate'],thesis:'SOTP story: Jio Platforms IPO is the potential unlock. Retail and new energy businesses add optionality. Core O2C remains a cash cow funding transformation.'},
+  {sym:'IRCTC',name:'IRCTC',sector:'Infrastructure',mcap:53400,pe:46.2,pb:14.6,roce:39.8,de:0.0,prom:62.4,promTrend:'stable',debtTrend:'stable',revGrowth:18.4,epsGrowth:22.1,dnaScore:'A',flags:['Monopoly','Debt Free'],thesis:'Monopoly on Indian railway ticketing. Debt-free, high ROCE, and government-backed. Occasional regulatory noise is noise — the moat is structural.'},
+  {sym:'ABLINDIA',name:'ABB India',sector:'Manufacturing',mcap:72400,pe:68.4,pb:18.2,roce:28.6,de:0.0,prom:75.0,promTrend:'stable',debtTrend:'stable',revGrowth:24.1,epsGrowth:38.7,dnaScore:'A',flags:['Max Promoter','Electrification'],thesis:'Pure play on India\'s industrial electrification super-cycle. Max promoter hold (75%), debt-free, 28%+ ROCE. Valuation is rich but quality commands premium.'},
+];
+
+// ── STATE ──
+var filteredStocks = [...STOCKS];
+var currentPage = 1;
+var perPage = 10;
+var expandedRow = null;
+var aiExplainCache = {};
+
+// ── CONFIG ──
+// Set this to your deployed Railway URL after `railway up`
+// e.g. "https://artha-backend-production.up.railway.app"
+// Leave empty to use offline demo data
+var API_BASE = window.ARTHA_API_BASE || 'https://web-production-c3545.up.railway.app';
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', function(){
+  updateStats();
+  bootstrapData();
+});
+
+function bootstrapData(){
+  var iconEl = document.getElementById('data-status-icon');
+  var textEl = document.getElementById('data-status-text');
+
+  if(!API_BASE){
+    // Pure offline / demo mode
+    iconEl.style.background = 'rgba(201,149,46,0.85)';
+    textEl.innerHTML = '<strong style="color:rgba(201,149,46,0.85);font-weight:600;">Demo mode.</strong> Backend not configured. Showing 22 representative NSE stocks for product preview. Not real-time, not investment advice.';
+    runScreen();
+    return;
+  }
+
+  // Try the backend
+  iconEl.style.background = 'var(--warn)';
+  textEl.textContent = 'Fetching live data from Yahoo Finance...';
+
+  fetch(API_BASE + '/api/stocks')
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data){
+      if(data.stocks && data.stocks.length > 0){
+        // Replace the offline demo array with live data
+        STOCKS = data.stocks;
+        STOCKS.forEach(function(s){ s.dnaComputed = calcDNAScore(s); });
+        iconEl.style.background = 'var(--ok)';
+        var freshness = data.cached ? 'cached (within 24h)' : 'fresh';
+        textEl.innerHTML = '<strong style="color:var(--ok);font-weight:600;">Live data.</strong> ' + STOCKS.length + ' NSE stocks · ' + freshness + ' · sourced from Yahoo Finance. Not investment advice — always do your own research.';
+        updateStats();
+        runScreen();
+      } else {
+        throw new Error('Empty response from backend');
+      }
+    })
+    .catch(function(err){
+      console.warn('Backend unreachable, using demo data:', err);
+      iconEl.style.background = 'var(--err)';
+      textEl.innerHTML = '<strong style="color:rgba(240,112,112,0.85);font-weight:600;">Offline.</strong> Backend unreachable, showing demo data. Live integration restored once backend is reachable. Not investment advice.';
+      runScreen();
+    });
+}
+
+function updateStats(){
+  document.getElementById('stat-total').textContent = STOCKS.length;
+  document.getElementById('stat-s-grade').textContent = STOCKS.filter(s=>s.dnaScore==='S').length;
+}
+
+// ── DNA SCORE ENGINE ──
+function calcDNAScore(s){
+  var score = 0;
+  // Promoter conviction (25 pts max)
+  if(s.prom >= 50) score += 10;
+  if(s.prom >= 60) score += 8;
+  if(s.promTrend === 'increasing') score += 7;
+  // Debt trajectory (20 pts max)
+  if(s.de <= 0.3) score += 12;
+  else if(s.de <= 1.0) score += 6;
+  if(s.debtTrend === 'declining') score += 8;
+  // Return on capital (25 pts max)
+  if(s.roce >= 30) score += 25;
+  else if(s.roce >= 20) score += 18;
+  else if(s.roce >= 15) score += 10;
+  // Growth quality (20 pts max)
+  if(s.epsGrowth >= 40) score += 12;
+  else if(s.epsGrowth >= 20) score += 7;
+  if(s.revGrowth >= 30) score += 8;
+  else if(s.revGrowth >= 15) score += 4;
+  // Valuation sanity (10 pts max)
+  if(s.pe <= 15) score += 10;
+  else if(s.pe <= 30) score += 6;
+
+  if(score >= 75) return 'S';
+  if(score >= 55) return 'A';
+  if(score >= 35) return 'B';
+  return 'C';
+}
+
+// Recompute DNA for all (demo data already has it but let's be consistent)
+STOCKS.forEach(s => s.dnaComputed = calcDNAScore(s));
+
+// ── FILTER ENGINE ──
+function runScreen(){
+  var mcap = document.getElementById('f-mcap').value;
+  var sector = document.getElementById('f-sector').value;
+  var pe = parseFloat(document.getElementById('f-pe').value);
+  var pb = parseFloat(document.getElementById('f-pb').value);
+  var prom = parseFloat(document.getElementById('f-prom').value);
+  var roce = parseFloat(document.getElementById('f-roce').value);
+  var de = parseFloat(document.getElementById('f-de').value)/10;
+  var debtDecline = document.getElementById('f-debt-trend').checked;
+  var promStable = document.getElementById('f-prom-stable').checked;
+  var revG = parseFloat(document.getElementById('f-rev').value);
+  var epsG = parseFloat(document.getElementById('f-eps').value);
+  var dnaFilter = document.getElementById('f-dna').value;
+
+  filteredStocks = STOCKS.filter(function(s){
+    if(mcap !== 'all'){
+      if(mcap==='large' && s.mcap < 20000) return false;
+      if(mcap==='mid' && (s.mcap < 5000 || s.mcap > 20000)) return false;
+      if(mcap==='small' && (s.mcap < 500 || s.mcap > 5000)) return false;
+      if(mcap==='micro' && s.mcap > 500) return false;
+    }
+    if(sector !== 'all' && s.sector !== sector) return false;
+    if(s.pe > pe) return false;
+    if(s.pb > pb) return false;
+    if(s.prom < prom) return false;
+    if(s.roce < roce) return false;
+    if(s.de > de) return false;
+    if(debtDecline && s.debtTrend !== 'declining') return false;
+    if(promStable && s.promTrend === 'declining') return false;
+    if(s.revGrowth < revG) return false;
+    if(s.epsGrowth < epsG) return false;
+    var dna = s.dnaComputed || s.dnaScore;
+    if(dnaFilter==='S' && dna!=='S') return false;
+    if(dnaFilter==='SA' && !['S','A'].includes(dna)) return false;
+    if(dnaFilter==='SAB' && !['S','A','B'].includes(dna)) return false;
+    return true;
+  });
+
+  sortResults();
+  currentPage = 1;
+  renderResults();
+  document.getElementById('stat-match').textContent = filteredStocks.length;
+}
+
+function sortResults(){
+  var by = document.getElementById('sort-by').value;
+  filteredStocks.sort(function(a,b){
+    var dnaOrder = {S:4,A:3,B:2,C:1};
+    if(by==='dna') return dnaOrder[b.dnaComputed||b.dnaScore] - dnaOrder[a.dnaComputed||a.dnaScore];
+    if(by==='pe') return a.pe - b.pe;
+    if(by==='roce') return b.roce - a.roce;
+    if(by==='mcap') return b.mcap - a.mcap;
+    if(by==='rev') return b.revGrowth - a.revGrowth;
+    return 0;
+  });
+  renderResults();
+}
+
+// ── RENDER ──
+function renderResults(){
+  var tbody = document.getElementById('stock-tbody');
+  var start = (currentPage-1)*perPage;
+  var page = filteredStocks.slice(start, start+perPage);
+
+  document.getElementById('res-count').textContent = filteredStocks.length;
+
+  if(filteredStocks.length === 0){
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="es-icon">🔍</div><h3>No stocks match your filters</h3><p>Try relaxing some filters or use a preset to get started.</p></div></td></tr>';
+    renderPagination();
+    return;
+  }
+
+  var html = '';
+  page.forEach(function(s, idx){
+    var dna = s.dnaComputed || s.dnaScore;
+    var dnaClass = {S:'dna-s',A:'dna-a',B:'dna-b',C:'dna-c'}[dna];
+    var dnaLabel = {S:'S ◆ Elite',A:'A ★ Strong',B:'B ✓ Good',C:'C ⚠ Watch'}[dna];
+    var promColor = s.prom >= 50 ? 'pos' : 'neg';
+    var deColor = s.de <= 0.5 ? 'pos' : s.de <= 1.5 ? 'neu' : 'neg';
+    var revColor = s.revGrowth >= 20 ? 'pos' : s.revGrowth >= 10 ? 'neu' : 'neg';
+
+    var flags = s.flags.map(function(f){
+      var cls = f.includes('Debt') || f.includes('ROCE') || f.includes('Low') ? 'flag-tag' : 
+                f.includes('Capex') || f.includes('Phase') ? 'flag-tag warn' : 'flag-tag';
+      return '<span class="'+cls+'">'+f+'</span>';
+    }).join(' ');
+
+    var mcapFmt = s.mcap >= 100000 ? '₹'+(s.mcap/100000).toFixed(1)+'L Cr' : '₹'+s.mcap.toLocaleString('en-IN')+'Cr';
+    var roceBar = Math.min(s.roce/40*100,100);
+    var rowId = 'row-'+s.sym;
+    var drawerRowId = 'drawer-row-'+s.sym;
+
+    html += '<tr id="'+rowId+'" onclick="toggleDrawer(\''+s.sym+'\')">';
+    html += '<td><div class="ticker-cell">';
+    html += '<div class="ticker-logo">'+s.sym.slice(0,3)+'</div>';
+    html += '<div><div class="ticker-name">'+s.name+'</div><div class="ticker-sector">'+s.sector+' · '+s.sym+'</div></div>';
+    html += '</div></td>';
+    html += '<td><span class="dna-badge '+dnaClass+'">'+dnaLabel+'</span></td>';
+    html += '<td class="mono">'+mcapFmt+'</td>';
+    html += '<td class="mono '+(s.pe<=15?'pos':s.pe<=35?'neu':'neg')+'">'+s.pe+'x</td>';
+    html += '<td><div class="mini-bar-wrap"><span class="mono pos">'+s.roce+'%</span><div class="mini-bar"><div class="mini-bar-fill" style="width:'+roceBar+'%"></div></div></div></td>';
+    html += '<td class="mono '+deColor+'">'+s.de+'</td>';
+    html += '<td class="mono '+promColor+'">'+s.prom+'%</td>';
+    html += '<td class="mono '+revColor+'">+'+s.revGrowth+'%</td>';
+    html += '<td>'+flags+'</td>';
+    html += '</tr>';
+
+    html += '<tr id="'+drawerRowId+'" style="display:none"><td colspan="9">';
+    html += '<div class="drawer-inner">';
+    // Metrics
+    html += '<div class="detail-metrics">';
+    html += dmItem('P/B Ratio', s.pb+'x', '');
+    html += dmItem('EPS Growth', '+'+s.epsGrowth+'%', '');
+    html += dmItem('Debt Trend', s.debtTrend.charAt(0).toUpperCase()+s.debtTrend.slice(1), s.debtTrend==='declining'?'pos':'neu');
+    html += dmItem('Promoter Trend', s.promTrend.charAt(0).toUpperCase()+s.promTrend.slice(1), s.promTrend==='increasing'?'pos':s.promTrend==='declining'?'neg':'neu');
+    html += dmItem('Revenue Growth', '+'+s.revGrowth+'%', s.revGrowth>=20?'pos':'neu');
+    html += dmItem('Sector', s.sector, '');
+    html += '</div>';
+    // AI Explain
+    html += '<div class="ai-explain" id="aie-'+s.sym+'" style="flex:2;min-width:280px;">';
+    html += '<div class="aie-title"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold-mid);margin-right:.4rem;"></span>Artha Analysis</div>';
+    html += '<div class="aie-loading" id="aie-load-'+s.sym+'" style="display:none;"></div>';
+    html += '<div class="aie-body" id="aie-body-'+s.sym+'"></div>';
+    html += '</div>';
+    html += '</div></td></tr>';
+  });
+
+  tbody.innerHTML = html;
+  renderPagination();
+}
+
+function dmItem(label, val, colorCls){
+  return '<div class="dm-item"><div class="dm-label">'+label+'</div><div class="dm-val '+(colorCls||'')+'">'+val+'</div></div>';
+}
+
+function renderPagination(){
+  var total = Math.ceil(filteredStocks.length/perPage);
+  var pg = document.getElementById('pagination');
+  if(total <= 1){pg.innerHTML='';return;}
+  var html = '';
+  if(currentPage>1) html += '<button class="pg-btn" onclick="gotoPage('+(currentPage-1)+')">‹</button>';
+  for(var i=1;i<=total;i++){
+    html += '<button class="pg-btn '+(i===currentPage?'active':'')+'" onclick="gotoPage('+i+')">'+i+'</button>';
+  }
+  if(currentPage<total) html += '<button class="pg-btn" onclick="gotoPage('+(currentPage+1)+')">›</button>';
+  pg.innerHTML = html;
+}
+
+function gotoPage(n){
+  currentPage=n;
+  renderResults();
+  document.querySelector('.results-area').scrollIntoView({behavior:'smooth'});
+}
+
+// ── DRAWER & AI EXPLAIN ──
+function toggleDrawer(sym){
+  var dr = document.getElementById('drawer-row-'+sym);
+  var isOpen = dr.style.display !== 'none';
+  document.querySelectorAll('[id^="drawer-row-"]').forEach(function(el){el.style.display='none';});
+  if(!isOpen){
+    dr.style.display='table-row';
+    renderLocalAnalysis(sym);
+  }
+}
+
+// ══════════════════════════════════════════
+// TIER 1 + 2: Local analyser (zero API)
+// ══════════════════════════════════════════
+function renderLocalAnalysis(sym){
+  var s = STOCKS.find(function(x){return x.sym===sym;});
+  if(!s) return;
+
+  var bodyEl = document.getElementById('aie-body-'+sym);
+  var loadEl = document.getElementById('aie-load-'+sym);
+  if(loadEl) loadEl.style.display='none';
+  if(!bodyEl) return;
+
+  // Run the local rule engine + sector template
+  var a = ArthaAnalyser.analyse(s);
+
+  var html = '';
+  html += '<div style="font-size:.78rem;color:var(--t2);line-height:1.75;margin-bottom:.85rem;">'+a.thesis+'</div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.85rem;">';
+  // Bull
+  html += '<div style="background:rgba(45,212,160,0.04);border:1px solid rgba(45,212,160,0.14);border-radius:10px;padding:.7rem .85rem;">';
+  html += '<div style="font-size:.58rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--ok);font-weight:600;margin-bottom:.45rem;">Bull case</div>';
+  a.bullPoints.forEach(function(p){
+    html += '<div style="font-size:.72rem;color:var(--t2);line-height:1.6;margin-bottom:.35rem;display:flex;gap:.4rem;"><span style="color:var(--ok);flex-shrink:0;">+</span><span>'+p+'</span></div>';
+  });
+  html += '</div>';
+  // Bear
+  html += '<div style="background:rgba(240,112,112,.04);border:1px solid rgba(240,112,112,.12);border-radius:10px;padding:.7rem .85rem;">';
+  html += '<div style="font-size:.58rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--err);font-weight:600;margin-bottom:.45rem;">Risks to watch</div>';
+  a.bearPoints.forEach(function(p){
+    html += '<div style="font-size:.72rem;color:var(--t2);line-height:1.6;margin-bottom:.35rem;display:flex;gap:.4rem;"><span style="color:var(--err);flex-shrink:0;">!</span><span>'+p+'</span></div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // Valuation comment
+  html += '<div style="background:rgba(201,149,46,.04);border-left:2px solid rgba(201,149,46,.4);border-radius:0 8px 8px 0;padding:.6rem .85rem;margin-bottom:.85rem;">';
+  html += '<div style="font-size:.58rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold-mid);font-weight:600;margin-bottom:.3rem;">Valuation read</div>';
+  html += '<div style="font-size:.74rem;color:var(--t2);line-height:1.55;">'+a.valuationComment+'</div>';
+  html += '</div>';
+
+  // Deep dive trigger (opt-in API call)
+  html += '<div style="display:flex;align-items:center;gap:.6rem;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">';
+  html += '<div style="font-size:.65rem;color:var(--t3);font-family:var(--fm);">Analysis by Artha Engine v1.0 &middot; Local &middot; No external call</div>';
+  html += '<button onclick="event.stopPropagation();runDeepDive(\''+sym+'\')" id="dd-btn-'+sym+'" style="background:rgba(201,149,46,.1);border:1px solid rgba(201,149,46,.3);color:var(--gold-mid);font-size:.7rem;font-weight:500;padding:.42rem 1rem;border-radius:100px;display:inline-flex;align-items:center;gap:.4rem;">Deep Dive with AI &#8594;</button>';
+  html += '</div>';
+
+  // Slot for deep dive result
+  html += '<div id="dd-result-'+sym+'" style="display:none;margin-top:.85rem;background:rgba(201,149,46,.04);border:1px solid rgba(201,149,46,.14);border-radius:12px;padding:.85rem 1rem;"></div>';
+
+  bodyEl.style.display='block';
+  bodyEl.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+// TIER 3: Deep Dive — calls Claude API (opt-in)
+// ══════════════════════════════════════════
+function runDeepDive(sym){
+  var s = STOCKS.find(function(x){return x.sym===sym;});
+  if(!s) return;
+  var btn = document.getElementById('dd-btn-'+sym);
+  var resultBox = document.getElementById('dd-result-'+sym);
+
+  if(aiExplainCache[sym]){
+    resultBox.style.display='block';
+    resultBox.innerHTML = '<div style="font-size:.58rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold-mid);font-weight:600;margin-bottom:.45rem;display:flex;align-items:center;gap:.4rem;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold-mid);"></span>AI Deep Dive</div>'+
+      '<div style="font-size:.78rem;color:var(--t2);line-height:1.75;">'+aiExplainCache[sym]+'</div>';
+    btn.textContent='AI analysis loaded';
+    btn.disabled=true;
+    btn.style.opacity='.6';
+    return;
+  }
+
+  btn.disabled=true;
+  btn.style.opacity='.7';
+  btn.innerHTML='<span style="display:inline-flex;gap:.2rem;align-items:center;">Thinking<span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span>';
+
+  var local = ArthaAnalyser.analyse(s);
+
+  // Backend proxy — API key stays server-side
+  if(!API_BASE){
+    // No backend configured — surface the local analysis as the deep dive
+    aiExplainCache[sym] = local.thesis + ' (Configure API_BASE to enable AI deep dive.)';
+    resultBox.style.display='block';
+    resultBox.innerHTML = '<div style="font-size:.58rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold-mid);font-weight:600;margin-bottom:.45rem;">AI Deep Dive (offline)</div>'+
+      '<div style="font-size:.78rem;color:var(--t2);line-height:1.75;">'+aiExplainCache[sym]+'</div>';
+    btn.textContent='Offline mode';
+    return;
+  }
+
+  fetch(API_BASE + '/api/ai-deep-dive', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ symbol: s.sym, local_thesis: local.thesis })
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(data){
+    var text = data.analysis || s.thesis;
+    var formatted = text.replace(/\*\*/g,'').replace(/\n/g,'<br>');
+    aiExplainCache[sym] = formatted;
+    resultBox.style.display='block';
+    resultBox.innerHTML = '<div style="font-size:.58rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold-mid);font-weight:600;margin-bottom:.45rem;display:flex;align-items:center;gap:.4rem;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold-mid);"></span>AI Deep Dive</div>'+
+      '<div style="font-size:.78rem;color:var(--t2);line-height:1.75;">'+formatted+'</div>';
+    btn.textContent='AI analysis loaded';
+  })
+  .catch(function(){
+    resultBox.style.display='block';
+    resultBox.innerHTML = '<div style="font-size:.72rem;color:var(--err);">AI deep dive temporarily unavailable. Local analysis above is fully usable.</div>';
+    btn.disabled=false;btn.style.opacity='1';btn.textContent='Retry AI Deep Dive';
+  });
+}
+
+// ── AI SEARCH ──
+function setAIQuery(q){
+  document.getElementById('ai-query').value=q;
+  runAISearch();
+}
+
+function runAISearch(){
+  var q = document.getElementById('ai-query').value.trim();
+  if(!q) return;
+
+  var resp = document.getElementById('ai-response');
+  resp.className = 'ai-response show';
+  resp.innerHTML = '<div class="ai-thinking"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:.5rem">Artha AI is thinking...</span></div>';
+
+  // Backend proxy — secure API key
+  if(!API_BASE){
+    resp.innerHTML = '<strong>Artha AI (offline):</strong> ' + getLocalAIResponse(q);
+    return;
+  }
+
+  fetch(API_BASE + '/api/ai-search', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ query: q })
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(data){
+    var text = data.response || 'Could not analyse. Try again.';
+    resp.innerHTML = '<strong>Artha AI:</strong> ' + text.replace(/\*\*/g,'<strong>').replace(/\n/g,'<br>');
+  })
+  .catch(function(err){
+    console.warn('AI search backend error:', err);
+    resp.innerHTML = '<strong>Artha AI (fallback):</strong> ' + getLocalAIResponse(q);
+  });
+}
+
+function getLocalAIResponse(q){
+  q = q.toLowerCase();
+  if(q.includes('small cap') || q.includes('multi-bagger')){
+    return 'For small cap multi-baggers, <strong>MAITHAN</strong> (debt-free, 31% ROCE, 73% promoter), <strong>SARDAEN</strong> (integrated metals, promoter buying), and <strong>POWERMEC</strong> (near-zero debt, power capex play) are your strongest matches. Set promoter filter to 55%+, ROCE to 15%+, D/E below 0.5. Key risk: small caps are illiquid — position size carefully.';
+  }
+  if(q.includes('dividend') || q.includes('undervalue')){
+    return 'For undervalued dividend payers, <strong>TCS</strong> (48% ROCE, debt-free, consistent dividend), <strong>CHAMBL</strong> (PE below 10, high yield), and <strong>IMFA</strong> (PE under 7) stand out. Set PE below 20, ROCE above 15%. Key risk: low PE can signal cyclicality or structural headwinds — check earnings quality.';
+  }
+  if(q.includes('debt free') || q.includes('roce')){
+    return 'Debt-free, high-ROCE names: <strong>MAITHAN</strong> (D/E 0.0, ROCE 31%), <strong>TCS</strong> (D/E 0.0, ROCE 48%), <strong>IRCTC</strong> (D/E 0.0, ROCE 40%), <strong>ACE</strong> (D/E 0.1, ROCE 29%). Set D/E below 0.3 and ROCE above 20%. Risk: zero-debt companies sometimes under-leverage and miss growth opportunities.';
+  }
+  return 'Based on your query, try applying promoter filter above 55%, ROCE above 15%, and D/E below 1.0. <strong>CHAMBL</strong>, <strong>MAITHAN</strong>, and <strong>ACE</strong> consistently appear as quality names across multiple screening criteria. Risk: always verify latest quarterly results before acting on any screen output.';
+}
+
+// ── PRESETS ──
+function applyPreset(name){
+  resetFilters();
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if(name==='multibagger'){
+    document.getElementById('f-prom').value=50;document.getElementById('prom-val').textContent=50;
+    document.getElementById('f-roce').value=15;document.getElementById('roce-val').textContent=15;
+    document.getElementById('f-de').value=10;document.getElementById('de-val').textContent='1.0';
+    document.getElementById('f-debt-trend').checked=true;
+    document.getElementById('f-prom-stable').checked=true;
+    document.getElementById('f-dna').value='SA';
+  } else if(name==='value'){
+    document.getElementById('f-pe').value=15;document.getElementById('pe-val').textContent=15;
+    document.getElementById('f-pb').value=3;document.getElementById('pb-val').textContent=3;
+    document.getElementById('f-roce').value=12;document.getElementById('roce-val').textContent=12;
+  } else if(name==='momentum'){
+    document.getElementById('f-rev').value=25;document.getElementById('rev-val').textContent=25;
+    document.getElementById('f-eps').value=25;document.getElementById('eps-val').textContent=25;
+  } else if(name==='quality'){
+    document.getElementById('f-roce').value=20;document.getElementById('roce-val').textContent=20;
+    document.getElementById('f-prom').value=50;document.getElementById('prom-val').textContent=50;
+    document.getElementById('f-de').value=5;document.getElementById('de-val').textContent='0.5';
+    document.getElementById('f-dna').value='SA';
+  } else if(name==='smallcap'){
+    document.getElementById('f-mcap').value='small';
+    document.getElementById('f-prom').value=50;document.getElementById('prom-val').textContent=50;
+    document.getElementById('f-roce').value=15;document.getElementById('roce-val').textContent=15;
+  }
+  runScreen();
+}
+
+function resetFilters(){
+  document.getElementById('f-mcap').value='all';
+  document.getElementById('f-sector').value='all';
+  document.getElementById('f-pe').value=100;document.getElementById('pe-val').textContent=100;
+  document.getElementById('f-pb').value=20;document.getElementById('pb-val').textContent=20;
+  document.getElementById('f-prom').value=0;document.getElementById('prom-val').textContent=0;
+  document.getElementById('f-roce').value=0;document.getElementById('roce-val').textContent=0;
+  document.getElementById('f-de').value=50;document.getElementById('de-val').textContent='5.0';
+  document.getElementById('f-debt-trend').checked=false;
+  document.getElementById('f-prom-stable').checked=false;
+  document.getElementById('f-rev').value=0;document.getElementById('rev-val').textContent=0;
+  document.getElementById('f-eps').value=0;document.getElementById('eps-val').textContent=0;
+  document.getElementById('f-dna').value='all';
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  runScreen();
+}
+
+// ── NAV ──
+window.addEventListener('scroll',function(){
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);
+});
+
+
+// ══════════════════════════════════════════
+// THREE.JS PARTICLE SYSTEM (bumped counts)
+// ══════════════════════════════════════════
+(function(){
+  var IS_MOBILE=window.innerWidth<=900;
+  var REDUCED=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(IS_MOBILE||REDUCED){document.getElementById('particle-canvas').style.display='none';return;}
+  if(typeof THREE==='undefined') return;
+  var canvas=document.getElementById('particle-canvas');
+  var W=window.innerWidth,H=window.innerHeight;
+  var renderer=new THREE.WebGLRenderer({canvas:canvas,alpha:true,antialias:true});
+  renderer.setSize(W,H);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(70,W/H,0.1,100);
+  camera.position.z=9;
+  var COUNT=260,pos=new Float32Array(COUNT*3),vel=new Float32Array(COUNT*3);
+  for(var i=0;i<COUNT;i++){pos[i*3]=(Math.random()-.5)*26;pos[i*3+1]=(Math.random()-.5)*20;pos[i*3+2]=(Math.random()-.5)*10;vel[i*3]=(Math.random()-.5)*.003;vel[i*3+1]=(Math.random()-.5)*.003;vel[i*3+2]=0;}
+  var geo=new THREE.BufferGeometry(),posAttr=new THREE.BufferAttribute(pos,3);
+  geo.setAttribute('position',posAttr);
+  var mat=new THREE.PointsMaterial({color:0xC9952E,size:.06,transparent:true,opacity:.62,sizeAttenuation:true});
+  var points=new THREE.Points(geo,mat);scene.add(points);
+  var COUNT2=140,pos2=new Float32Array(COUNT2*3);
+  for(var j=0;j<COUNT2;j++){pos2[j*3]=(Math.random()-.5)*30;pos2[j*3+1]=(Math.random()-.5)*22;pos2[j*3+2]=(Math.random()-.5)*6;}
+  var geo2=new THREE.BufferGeometry();geo2.setAttribute('position',new THREE.BufferAttribute(pos2,3));
+  var mat2=new THREE.PointsMaterial({color:0xD4A843,size:.03,transparent:true,opacity:.34,sizeAttenuation:true});
+  var points2=new THREE.Points(geo2,mat2);scene.add(points2);
+  // Third smaller dust layer for extra depth
+  var COUNT3=90,pos3=new Float32Array(COUNT3*3);
+  for(var k=0;k<COUNT3;k++){pos3[k*3]=(Math.random()-.5)*34;pos3[k*3+1]=(Math.random()-.5)*24;pos3[k*3+2]=(Math.random()-.5)*4;}
+  var geo3=new THREE.BufferGeometry();geo3.setAttribute('position',new THREE.BufferAttribute(pos3,3));
+  var mat3=new THREE.PointsMaterial({color:0xE5B968,size:.018,transparent:true,opacity:.22,sizeAttenuation:true});
+  var points3=new THREE.Points(geo3,mat3);scene.add(points3);
+  var mx=0,my=0,tx=0,ty=0;
+  document.addEventListener('mousemove',function(e){tx=(e.clientX/W-.5)*1.8;ty=-(e.clientY/H-.5)*1.2;});
+  var time=0;
+  function animate(){
+    requestAnimationFrame(animate);time+=.004;
+    mx+=(tx-mx)*.03;my+=(ty-my)*.03;
+    camera.position.x+=(mx*.6-camera.position.x)*.025;
+    camera.position.y+=(my*.4-camera.position.y)*.025;
+    camera.lookAt(scene.position);
+    points.rotation.y=time*.04;points.rotation.x=Math.sin(time*.025)*.06;
+    points2.rotation.y=-time*.025;points2.rotation.z=time*.015;
+    points3.rotation.y=time*.018;points3.rotation.x=-Math.sin(time*.02)*.04;
+    for(var k=0;k<COUNT;k++){
+      pos[k*3]+=vel[k*3];pos[k*3+1]+=vel[k*3+1];
+      if(pos[k*3]>13)pos[k*3]=-13;if(pos[k*3]<-13)pos[k*3]=13;
+      if(pos[k*3+1]>10)pos[k*3+1]=-10;if(pos[k*3+1]<-10)pos[k*3+1]=10;
+    }
+    posAttr.needsUpdate=true;renderer.render(scene,camera);
+  }
+  animate();
+  window.addEventListener('resize',function(){W=window.innerWidth;H=window.innerHeight;camera.aspect=W/H;camera.updateProjectionMatrix();renderer.setSize(W,H);});
+})();
+</script>
+<script src="artha-blur-mode.js"></script>
+<script src="artha-ai-drawer.js"></script>
+</body>
+</html>
